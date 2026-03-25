@@ -1,33 +1,32 @@
 # kumi_stack
-![Descrizione immagine](assets/kumi.png)
 
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04-E95420?)
 ![ROS](https://img.shields.io/badge/ROS-2_Jazzy-22314E?logo=ros)
 ![Gazebo](https://img.shields.io/badge/Gazebo-Harmonic-6C3AB2?logo=gazebo)
 
-Workspace ROS 2 per il robot `kumi`, con descrizione robot, controllo, simulazione Gazebo e bringup completo.
+ROS 2 workspace for the `kumi` robot, including robot description, control, Gazebo simulation, and full bringup.
 
-## Indice
+## Contents
 
 - [Package Overview](#package-overview)
-- [Installazione](#installazione)
+- [Installation](#installation)
 - [Build](#build)
 - [Launch](#launch)
 - [Controller](#controller)
-- [Sensori](#sensori)
-- [Comandi utili](#comandi-utili)
+- [Sensors](#sensors)
+- [Useful Commands](#useful-commands)
 
 ## Package Overview
 
 ### `kumi_description`
 
-Contiene il modello del robot e tutte le risorse associate:
+Contains the robot model and all related resources:
 - URDF / Xacro
-- mesh
-- sensori
-- plugin Gazebo / ros2_control
+- meshes
+- sensors
+- Gazebo / ros2_control plugins
 
-Struttura attuale dei file Xacro:
+Current Xacro structure:
 - [kumi.xacro](/home/andreas/dev_ws/kumi_stack/src/kumi_description/urdf/kumi.xacro)
 - [macros.xacro](/home/andreas/dev_ws/kumi_stack/src/kumi_description/urdf/macros.xacro)
 - [core.xacro](/home/andreas/dev_ws/kumi_stack/src/kumi_description/urdf/core.xacro)
@@ -36,75 +35,75 @@ Struttura attuale dei file Xacro:
 
 ### `kumi_control`
 
-Gestisce il layer di controllo:
-- configurazione controller
-- launch del controller manager
-- nodi Python per pubblicare traiettorie sui giunti
+Handles the control layer:
+- controller configuration
+- controller manager launch
+- Python nodes that publish joint trajectories
 
-Controller configurato:
+Configured controllers:
 - `joint_state_broadcaster`
 - `multi_joint_trajectory_controller`
 
 ### `kumi_sim`
 
-Contiene la simulazione:
-- launch di Gazebo
+Provides simulation support:
+- Gazebo launch
 - world files
-- modelli e risorse per Gazebo
+- Gazebo resources
 
-World disponibili:
+Available worlds:
 - `my_empty`
 - `stairs`
 
 ### `kumi_bringup`
 
-Launch package per avviare lo stack completo in simulazione:
+Bringup package for launching the full simulation stack:
 - Gazebo
 - robot description
-- spawn del robot
-- controller
-- bridge Gazebo/ROS per clock e camere
+- robot spawning
+- controllers
+- Gazebo/ROS bridge for clock and camera topics
 
 ### `kumi_perception`
 
-Pacchetto placeholder per la parte perception. Al momento nel workspace è minimale.
+Placeholder package for perception. At the moment it is minimal inside this workspace.
 
-## Installazione
+## Installation
 
-### Requisiti
+### Requirements
 
 - Ubuntu 24.04
 - ROS 2 Jazzy
 - Gazebo Harmonic
 
-Guide ufficiali:
+Official guides:
 - [ROS 2 Jazzy installation guide](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html)
 - [Gazebo Harmonic installation guide](https://gazebosim.org/docs/harmonic/install_ubuntu/)
 
-### Clonazione
+### Clone
 
 ```bash
 git clone <repo-url> ~/dev_ws/kumi_stack
 ```
 
-### Install completa del workspace
+### Full workspace installation
 
-Dentro [kumi_stack](/home/andreas/dev_ws/kumi_stack):
+Inside [kumi_stack](/home/andreas/dev_ws/kumi_stack):
 
 ```bash
 ./scripts/kumi_install.sh
 ```
 
-Lo script:
-- installa dipendenze di sistema
-- inizializza `rosdep`
-- crea la virtualenv [`.venv`](/home/andreas/dev_ws/kumi_stack/.venv)
-- installa le dipendenze Python
-- esegue `colcon build --symlink-install`
+The script:
+- installs system dependencies
+- initializes `rosdep`
+- creates the [`.venv`](/home/andreas/dev_ws/kumi_stack/.venv) virtual environment
+- installs Python dependencies
+- runs `colcon build --symlink-install`
 
 ## Build
 
-Ogni volta che apri un nuovo terminale:
+Every time you open a new terminal:
 
 ```bash
 cd /home/andreas/dev_ws/kumi_stack
@@ -113,7 +112,7 @@ source .venv/bin/activate
 source install/setup.bash
 ```
 
-Se modifichi il codice:
+If you change code:
 
 ```bash
 colcon build --symlink-install
@@ -122,13 +121,13 @@ source install/setup.bash
 
 ## Launch
 
-### Stack completo in simulazione
+### Full simulation stack
 
 ```bash
 ros2 launch kumi_bringup sim_bringup.launch.py
 ```
 
-Parametri utili:
+Useful parameters:
 - `world:=my_empty`
 - `world:=stairs`
 - `enable_sensors:=true`
@@ -137,25 +136,25 @@ Parametri utili:
 - `ros_namespace:=kumi`
 - `robot_name:=bruno`
 
-Esempio:
+Example:
 
 ```bash
 ros2 launch kumi_bringup sim_bringup.launch.py world:=my_empty enable_sensors:=true
 ```
 
-### Solo descrizione robot
+### Robot description only
 
 ```bash
 ros2 launch kumi_description description.launch.py use_rviz:=false use_joint_state_publisher_gui:=false
 ```
 
-### Solo Gazebo
+### Gazebo only
 
 ```bash
 ros2 launch kumi_sim sim.launch.py world:=my_empty
 ```
 
-### Solo controllo
+### Control only
 
 ```bash
 ros2 launch kumi_control control.launch.py
@@ -163,62 +162,62 @@ ros2 launch kumi_control control.launch.py
 
 ## Controller
 
-Il controller configurato è `multi_joint_trajectory_controller`.
+The active trajectory controller is `multi_joint_trajectory_controller`.
 
-Configurazione:
+Configuration:
 - [trajectory_control_config.yaml](/home/andreas/dev_ws/kumi_stack/src/kumi_control/config/trajectory_control_config.yaml)
 
-Topic usato dal controller:
+Controller topic:
 - `/kumi/multi_joint_trajectory_controller/joint_trajectory`
 
-Nodo demo per inviare traiettorie da CSV:
+Demo node that publishes trajectories from CSV:
 
 ```bash
 ros2 run kumi_control kumi_seq_traj_controller
 ```
 
-CSV di default:
+Default CSV:
 - [demo_flip_500.csv](/home/andreas/dev_ws/kumi_stack/src/kumi_control/resource/demo_flip_500.csv)
 
-## Sensori
+## Sensors
 
-Attualmente il robot espone:
-- camera RGB frontale
-- depth camera frontale
+The robot currently exposes:
+- front RGB camera
+- front depth camera
 
-Topic bridgeati da Gazebo:
+Gazebo topics bridged to ROS:
 - `/front_camera/image`
 - `/front_camera/camera_info`
 - `/front_depth/image`
 - `/front_depth/camera_info`
 
-Puoi disattivarli passando:
+You can disable sensors with:
 
 ```bash
 ros2 launch kumi_bringup sim_bringup.launch.py enable_sensors:=false
 ```
 
-## Comandi utili
+## Useful Commands
 
-Lista controller:
+List controllers:
 
 ```bash
 ros2 control list_controllers
 ```
 
-Verifica topic traiettoria:
+Check the trajectory topic:
 
 ```bash
 ros2 topic echo /kumi/multi_joint_trajectory_controller/joint_trajectory
 ```
 
-Kill di Gazebo:
+Kill Gazebo:
 
 ```bash
 pkill -9 -f 'gz-sim|gz sim|gz'
 ```
 
-Build di un singolo package:
+Build a single package:
 
 ```bash
 colcon build --packages-select kumi_description --symlink-install
