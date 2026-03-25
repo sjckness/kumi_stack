@@ -1,4 +1,5 @@
 # kumi_stack
+![Descrizione immagine](assets/kumi.png)
 
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04-E95420?)
 ![ROS](https://img.shields.io/badge/ROS-2_Jazzy-22314E?logo=ros)
