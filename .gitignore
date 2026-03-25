@@ -1,0 +1,7 @@
+# ROS2 colcon
+build/ 
+install/ 
+log/
+.venv/
+
+/scripts/update_deps_and_push.sh

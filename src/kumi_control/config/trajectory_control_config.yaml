@@ -1,0 +1,23 @@
+# yaml file path defined in kumi.xacro (kumi_control.xacro)
+---
+controller_manager:
+  ros__parameters:
+    update_rate: 1000
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+      update_rate: 100
+    multi_joint_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+      update_rate: 1000
+
+multi_joint_trajectory_controller:
+  ros__parameters:
+    joints:
+    - front_sh
+    - front_ank_y
+    - front_ank_z
+    - rear_sh
+    - rear_ank_y
+    - rear_ank_z
+    state_interfaces: [ position, velocity ]
+    command_interfaces: [ position ]
