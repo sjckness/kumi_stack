@@ -1,245 +1,225 @@
-# msauber stack
-![Descrizione immagine](assets/msauber_on_track.png)
+# kumi_stack
+![Descrizione immagine](assets/kumi.png)
 
-![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04-E95420?) 
+![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04-E95420?)
 ![ROS](https://img.shields.io/badge/ROS-2_Jazzy-22314E?logo=ros)
-![Gazebo](https://img.shields.io/badge/Gazebo-Harmonic_8.10-6C3AB2?logo=gazebo)
+![Gazebo](https://img.shields.io/badge/Gazebo-Harmonic-6C3AB2?logo=gazebo)
 
-# Table of content
-[Package-overview](#package-overview)
+Workspace ROS 2 per il robot `kumi`, con descrizione robot, controllo, simulazione Gazebo e bringup completo.
 
-[Installation](#installation)
+## Indice
 
-[Build](#build)
+- [Package Overview](#package-overview)
+- [Installazione](#installazione)
+- [Build](#build)
+- [Launch](#launch)
+- [Controller](#controller)
+- [Sensori](#sensori)
+- [Comandi utili](#comandi-utili)
 
-[Launch](#launch)
+## Package Overview
 
-[Controller](#controller)
+### `kumi_description`
 
-[Settings](#hands-on)
+Contiene il modello del robot e tutte le risorse associate:
+- URDF / Xacro
+- mesh
+- sensori
+- plugin Gazebo / ros2_control
 
-[Usefull commands](#usefull-commands)
+Struttura attuale dei file Xacro:
+- [kumi.xacro](/home/andreas/dev_ws/kumi_stack/src/kumi_description/urdf/kumi.xacro)
+- [macros.xacro](/home/andreas/dev_ws/kumi_stack/src/kumi_description/urdf/macros.xacro)
+- [core.xacro](/home/andreas/dev_ws/kumi_stack/src/kumi_description/urdf/core.xacro)
+- [sensors.xacro](/home/andreas/dev_ws/kumi_stack/src/kumi_description/urdf/sensors.xacro)
+- [gazebo_plugins.xacro](/home/andreas/dev_ws/kumi_stack/src/kumi_description/urdf/gazebo_plugins.xacro)
 
-[Foxglove](#foxglove)
+### `kumi_control`
 
----
+Gestisce il layer di controllo:
+- configurazione controller
+- launch del controller manager
+- nodi Python per pubblicare traiettorie sui giunti
 
-# Package Overview
+Controller configurato:
+- `joint_state_broadcaster`
+- `multi_joint_trajectory_controller`
 
-## msauber_description
+### `kumi_sim`
 
-This package contains the robot model and all related resources.
-
-Contents:
-- URDF / Xacro robot model
-- meshes
-- sensor configuration
-
-Purpose:
-- Defines the physical structure of the robot
-- Used by simulation and visualization tools
-
----
-
-## msauber_bringup
-
-Responsible for launching and initializing the robot system.
-
-Contents:
-- main launch file
-- configuration files
-- system initialization
-
-Purpose:
-- Starts the complete robot stack
-- Launches the required nodes and parameters
-
----
-
-## msauber_control
-
-Handles the robot control layer.
-
-Contents:
-- ROS 2 controllers
-- velocity and position command interfaces (`/cmd_vel`)
-- hardware interfaces
-
-Purpose:
-- Converts high-level commands into actuator commands
-- Interfaces with the robot hardware
-
----
-
-## msauber_sim
-
-Provides simulation support.
-
-Contents:
-- gz_sim launch
+Contiene la simulazione:
+- launch di Gazebo
 - world files
-- simulation plugins
+- modelli e risorse per Gazebo
 
-Purpose:
-- Allows testing the robot in simulation
-- Development without physical hardware
+World disponibili:
+- `my_empty`
+- `stairs`
 
----
+### `kumi_bringup`
 
-## msauber_perception
+Launch package per avviare lo stack completo in simulazione:
+- Gazebo
+- robot description
+- spawn del robot
+- controller
+- bridge Gazebo/ROS per clock e camere
 
-Contents:
-- YOLO algorithms
-- cone detection
-- 
+### `kumi_perception`
 
-Purpose:
-- Enables the robot to see the world
+Pacchetto placeholder per la parte perception. Al momento nel workspace è minimale.
 
----
+## Installazione
 
-# Installation
-[ROS2 Jazzy installation guide](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html)
+### Requisiti
 
-[Gazebo Harmonic 8.9 installation guide](https://gazebosim.org/docs/harmonic/install_ubuntu/)
+- Ubuntu 24.04
+- ROS 2 Jazzy
+- Gazebo Harmonic
 
-### Package installation
-For our case you can clone the main branch of this repository in `~/dev_ws/src/` using:
+Guide ufficiali:
+- [ROS 2 Jazzy installation guide](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html)
+- [Gazebo Harmonic installation guide](https://gazebosim.org/docs/harmonic/install_ubuntu/)
 
- ```bash
-git clone https://github.com/sjckness/msauber_stack
-```
-
-Msauber_stack includes different packages, and from now on Msauber_stack will be the workspace, so the folders `build/` `log/` and `install/` will be created here.
-
-Inside /msauber_stack run the full project installation:
-
- ```bash
-./scripts/install.sh
-```
-This installs all dependencies (ROS2, Python, etc.) and builds the workspace.
-
-## Environment
-
-Inside /msauber_stack activate the working environment:
-
- ```bash
-source scripts/env.sh
-```
-This loads ROS2, the workspace, and the Python environment.
-
-⚠️ Use `source`, not `./env.sh`.
-
-## Typical usage
+### Clonazione
 
 ```bash
-./scripts/install.sh
-source scripts/env.sh
+git clone <repo-url> ~/dev_ws/kumi_stack
 ```
 
-# Build
-Inside `/msauber_stack` use the following command to build the packages (this step is mandatory every time you open a new terminal): 
+### Install completa del workspace
+
+Dentro [kumi_stack](/home/andreas/dev_ws/kumi_stack):
+
 ```bash
-colcon build --simlink-install 
+./scripts/kumi_install.sh
 ```
-Then you have to source the workspace, and now ros knows where your files are. Use:
+
+Lo script:
+- installa dipendenze di sistema
+- inizializza `rosdep`
+- crea la virtualenv [`.venv`](/home/andreas/dev_ws/kumi_stack/.venv)
+- installa le dipendenze Python
+- esegue `colcon build --symlink-install`
+
+## Build
+
+Ogni volta che apri un nuovo terminale:
+
 ```bash
+cd /home/andreas/dev_ws/kumi_stack
+source /opt/ros/jazzy/setup.bash
+source .venv/bin/activate
 source install/setup.bash
 ```
-# Launch
-If you want to launch everything you can run:
-```bash 
-ros2 launch msauber_bringup sim_bringup.launch.py
-```
 
-### specific launches
-See the robot on rviz2:
-```bash 
-ros2 launch msauber_description description.launch.py use_rviz:=true
-```
-Gazebo+robot w/o control and perception with custom world:
-```bash 
-ros2 launch msauber_sim sim.launch.py world:=cone_empty
-```
-Controllers launch and activation(not so usefull):
-```bash 
-ros2 launch msauber_control control.launch.py
-```
-Perception, YOLO and cone detection
-```bash 
-ros2 launch msauber_perception perception.launch.py
-```
+Se modifichi il codice:
 
-# Controller
-### Ackerman controller
-The ackerman controller is a ROS2 type of controller that allowes you to choose velocity and stearing rate. In this version is used with the node `teleop_twist_keyboard` from the namesake package. It take imput from the keyboard and the car moves.
-
-To use it just run:
-```bash 
-ros2 run teleop_twist_keyboard teleop_twist_keyboard
-```
-It works better with US keyboards, istead of WASD you should use IJML.
-
-# Hands on
-## Worlds
-In order to try different worlds is now possible to select it when launching the simulation by setting the `world` parameter:
 ```bash
-ros2 launch msauber_stack sim_bringup.launch.py world:=world_name
+colcon build --symlink-install
+source install/setup.bash
 ```
-Worlds available in the stack:
-- cone_empty
-- sonoma
-- my_empty
 
-## Cameras
-Cameras are implemented for perception. One classic front camera and one depth camera. 
-To visualize the cameras outputs we need to use [Foxglove](#foxglove).
+## Launch
 
-You should add an IMAGE pannel and set, for the classic camera:
-- topic : `/front_camera/image`
-- calibration : `/front_camera/camera_info`
+### Stack completo in simulazione
 
-And for the depth camera:
-- topic : `/front_depth/image`
-- calibration : `/front_depth/camera_info`
-
-Is possible to disable the sensors by passign the following argument to false while launching:
 ```bash
-ros2 launch msauber msauber.launch.py enable_sensors:=false
+ros2 launch kumi_bringup sim_bringup.launch.py
 ```
-## Perception pkg
-By launching the world `cone_empty` is possible to test the perception models, in gazebo you'll see:
 
-![Descrizione immagine](assets/gz_cones.png)
+Parametri utili:
+- `world:=my_empty`
+- `world:=stairs`
+- `enable_sensors:=true`
+- `use_rviz:=false`
+- `use_joint_state_publisher_gui:=false`
+- `ros_namespace:=kumi`
+- `robot_name:=bruno`
 
-In foxglove you will see this from the cameras:
+Esempio:
 
-![Descrizione immagine](assets/foxglove_cones.png)
-
-The stack is using a [YOLO model](https://docs.ultralytics.com/models/yolov8/)  trained on a set of cones from [FSOCO dataset](https://universe.roboflow.com/cone-detection-bsgwo/fsoco-67vav). The front_camera image is passed to it and cones are identified, then the position of the cone is completed with the info from the depth camera and from there a 3D position is computed and the a marker is sent on the topic: `/perception/cones_markers` and that can be viasulized on RVIZ:
-
-![Descrizione immagine](assets/rviz_cones.png)
-
-In the futur a explaination of the trainign process will be added ;)
-
-# Usefull commands
-Rviz2:
 ```bash
-rviz2
+ros2 launch kumi_bringup sim_bringup.launch.py world:=my_empty enable_sensors:=true
 ```
 
-to kill gazebo:
+### Solo descrizione robot
+
+```bash
+ros2 launch kumi_description description.launch.py use_rviz:=false use_joint_state_publisher_gui:=false
+```
+
+### Solo Gazebo
+
+```bash
+ros2 launch kumi_sim sim.launch.py world:=my_empty
+```
+
+### Solo controllo
+
+```bash
+ros2 launch kumi_control control.launch.py
+```
+
+## Controller
+
+Il controller configurato è `multi_joint_trajectory_controller`.
+
+Configurazione:
+- [trajectory_control_config.yaml](/home/andreas/dev_ws/kumi_stack/src/kumi_control/config/trajectory_control_config.yaml)
+
+Topic usato dal controller:
+- `/kumi/multi_joint_trajectory_controller/joint_trajectory`
+
+Nodo demo per inviare traiettorie da CSV:
+
+```bash
+ros2 run kumi_control kumi_seq_traj_controller
+```
+
+CSV di default:
+- [demo_flip_500.csv](/home/andreas/dev_ws/kumi_stack/src/kumi_control/resource/demo_flip_500.csv)
+
+## Sensori
+
+Attualmente il robot espone:
+- camera RGB frontale
+- depth camera frontale
+
+Topic bridgeati da Gazebo:
+- `/front_camera/image`
+- `/front_camera/camera_info`
+- `/front_depth/image`
+- `/front_depth/camera_info`
+
+Puoi disattivarli passando:
+
+```bash
+ros2 launch kumi_bringup sim_bringup.launch.py enable_sensors:=false
+```
+
+## Comandi utili
+
+Lista controller:
+
+```bash
+ros2 control list_controllers
+```
+
+Verifica topic traiettoria:
+
+```bash
+ros2 topic echo /kumi/multi_joint_trajectory_controller/joint_trajectory
+```
+
+Kill di Gazebo:
+
 ```bash
 pkill -9 -f 'gz-sim|gz sim|gz'
 ```
 
-## Foxglove
-Foxglove is a visualization and debugging tool for robotics that allows you to inspect, analyze, and replay ROS data (topics, messages, and logs) in real time or from recorded bag files.
+Build di un singolo package:
 
-In a new terminal:
 ```bash
-foxglove-studio
+colcon build --packages-select kumi_description --symlink-install
 ```
-Foxglove session info:
- - address: `ws://localhost`
- - port: `8765` (defined in launch file)
