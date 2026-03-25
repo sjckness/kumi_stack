@@ -13,9 +13,12 @@ setup(
         ('share/' + package_name, ['package.xml']),
         # Launch files
         (f'share/{package_name}/launch', glob('launch/*.py')),
-        
+
         # Config files (YAML)
         (f'share/{package_name}/config', glob('config/*.yaml')),
+
+        # CSV resources
+        (f'share/{package_name}/resource', glob('resource/*.csv')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

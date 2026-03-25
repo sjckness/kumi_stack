@@ -1,0 +1,106 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kumi">
+
+    <xacro:if value="$(arg enable_sensors)">
+        <link name="front_camera">
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <geometry>
+                    <box size="0.01 0.01 0.01"/>
+                </geometry>
+                <material name="black"/>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <geometry>
+                    <box size="0.01 0.01 0.01"/>
+                </geometry>
+            </collision>
+            <inertial>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <mass value="0.01"/>
+                <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+            </inertial>
+        </link>
+
+        <joint name="front_camera_joint" type="fixed">
+            <parent link="realsense"/>
+            <child link="front_camera"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </joint>
+
+        <gazebo reference="front_camera">
+            <sensor name="front_camera" type="camera">
+                <always_on>true</always_on>
+                <visualize>true</visualize>
+                <update_rate>30</update_rate>
+                <topic>front_camera/image</topic>
+                <camera_info_topic>front_camera/camera_info</camera_info_topic>
+                <gz_frame_id>front_camera</gz_frame_id>
+                <camera>
+                    <horizontal_fov>1.3962634</horizontal_fov>
+                    <image>
+                        <width>1280</width>
+                        <height>720</height>
+                        <format>R8G8B8</format>
+                    </image>
+                    <clip>
+                        <near>0.05</near>
+                        <far>50.0</far>
+                    </clip>
+                </camera>
+            </sensor>
+        </gazebo>
+
+        <link name="front_depth">
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <geometry>
+                    <box size="0.012 0.012 0.012"/>
+                </geometry>
+                <material name="green"/>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <geometry>
+                    <box size="0.012 0.012 0.012"/>
+                </geometry>
+            </collision>
+            <inertial>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <mass value="0.015"/>
+                <inertia ixx="2e-6" ixy="0" ixz="0" iyy="2e-6" iyz="0" izz="2e-6"/>
+            </inertial>
+        </link>
+
+        <joint name="front_depth_joint" type="fixed">
+            <parent link="realsense"/>
+            <child link="front_depth"/>
+            <origin xyz="0.005 0 0" rpy="0 0 0"/>
+        </joint>
+
+        <gazebo reference="front_depth">
+            <sensor name="front_depth_camera" type="depth_camera">
+                <always_on>true</always_on>
+                <visualize>true</visualize>
+                <update_rate>20</update_rate>
+                <topic>front_depth/image</topic>
+                <camera_info_topic>front_depth/camera_info</camera_info_topic>
+                <gz_frame_id>front_depth</gz_frame_id>
+                <camera>
+                    <horizontal_fov>1.22173</horizontal_fov>
+                    <image>
+                        <width>640</width>
+                        <height>480</height>
+                        <format>R_FLOAT32</format>
+                    </image>
+                    <clip>
+                        <near>0.10</near>
+                        <far>10.0</far>
+                    </clip>
+                </camera>
+            </sensor>
+        </gazebo>
+    </xacro:if>
+
+</robot>

@@ -13,10 +13,16 @@ class CSVJointTrajectory(Node):
     def __init__(self, csv_path: str | None = None):
         super().__init__('csv_joint_trajectory')
 
+        self.declare_parameter(
+            'trajectory_topic',
+            '/kumi/multi_joint_trajectory_controller/joint_trajectory'
+        )
+        trajectory_topic = str(self.get_parameter('trajectory_topic').value)
+
         # Publisher
         self.pub = self.create_publisher(
             JointTrajectory,
-            '/multi_joint_trajectory_controller/joint_trajectory',
+            trajectory_topic,
             10
         )
 
@@ -28,7 +34,7 @@ class CSVJointTrajectory(Node):
 
         self.frequency = 10 #hz
 
-        pkg_share = Path(get_package_share_directory('kumi'))
+        pkg_share = Path(get_package_share_directory('kumi_control'))
         default_csv = pkg_share / 'resource/demo_flip_500.csv'
 
         # consenti override via parametro ROS o argomento esplicito
@@ -41,6 +47,7 @@ class CSVJointTrajectory(Node):
 
         self.positions_list = self.load_csv_in_radians(csv_path)
 
+        self.get_logger().info(f"Pubblico traiettorie su: {trajectory_topic}")
         self.get_logger().info(f"Caricate {len(self.positions_list)} pose dal CSV (in radianti).")
         self.get_logger().info("Invio automatico di un punto ogni 2.0 secondi (0.5 Hz).")
 

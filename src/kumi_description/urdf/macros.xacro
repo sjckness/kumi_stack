@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kumi">
+
+    <xacro:arg name="pkg_share" default="$(find kumi_description)" />
+    <xacro:arg name="robot_name" default="bruno" />
+    <xacro:arg name="ros_namespace" default="kumi" />
+    <xacro:arg name="enable_sensors" default="true" />
+    <xacro:arg name="use_sim" default="false" />
+    <xacro:arg name="control_config" default="$(find kumi_control)/config/trajectory_control_config.yaml" />
+
+    <xacro:property name="pkg_share" value="$(arg pkg_share)"/>
+    <xacro:property name="mesh_dir" value="${pkg_share}/meshes"/>
+
+    <xacro:property name="ang_low_lim" value="0.85" />
+    <xacro:property name="ang_up_lim" value="4" />
+    <xacro:property name="thikness" value="0.15" />
+    <xacro:property name="lenght" value="0.18" />
+    <xacro:property name="leg_len" value="0.11" />
+    <xacro:property name="foot_len" value="0.5" />
+    <xacro:property name="toll" value="0.005" />
+    <xacro:property name="mass" value="0.3" />
+    <xacro:property name="joint_friction" value="0.2" />
+    <xacro:property name="mesh_scale" value="0.001 0.001 0.001"/>
+    <xacro:property name="body_mesh" value="${mesh_dir}/body_v5.STL"/>
+    <xacro:property name="leg_mesh" value="${mesh_dir}/leg_v2.stl"/>
+    <xacro:property name="foot_mesh" value="${mesh_dir}/piedino_v3.STL"/>
+    <xacro:property name="realsense_mesh" value="${mesh_dir}/realsense.stl"/>
+
+    <material name="black"><color rgba="0.1 0.1 0.1 1.0"/></material>
+    <material name="gray"><color rgba="0 0 0 0.8"/></material>
+    <material name="green"><color rgba="0 1 0 0.8"/></material>
+    <material name="red"><color rgba="1 0 0 0.8"/></material>
+
+</robot>

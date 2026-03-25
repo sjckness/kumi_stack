@@ -1,10 +1,11 @@
 <?xml version="1.0" ?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="kumi">
 
-    <xacro:property name="kumi_share" value="$(find kumi_description)"/>
+    <xacro:arg name="pkg_share" default="$(find kumi_description)" />
+    <xacro:property name="pkg_share" value="$(arg pkg_share)"/>
 
-    <xacro:include filename="${kumi_share}/urdf/variables.xacro" />
-    <xacro:include filename="${kumi_share}/urdf/trajectory_control.xacro" />
-    <xacro:include filename="${kumi_share}/urdf/kumi_mesh_stereocamera.xacro" />
-    <xacro:include filename="${kumi_share}/urdf/sensors_config.xacro" />
+    <xacro:include filename="${pkg_share}/urdf/macros.xacro" />
+    <xacro:include filename="${pkg_share}/urdf/core.xacro" />
+    <xacro:include filename="${pkg_share}/urdf/sensors.xacro" />
+    <xacro:include filename="${pkg_share}/urdf/gazebo_plugins.xacro" />
 </robot>

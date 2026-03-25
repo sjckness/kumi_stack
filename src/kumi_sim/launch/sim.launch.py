@@ -3,11 +3,30 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, GroupAction
+from launch.actions import (
+    AppendEnvironmentVariable,
+    DeclareLaunchArgument,
+    GroupAction,
+    IncludeLaunchDescription,
+    SetEnvironmentVariable,
+    UnsetEnvironmentVariable,
+)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, TextSubstitution, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import PushRosNamespace
+
+
+def _clean_ld_library_path():
+    ld_library_path = os.environ.get('LD_LIBRARY_PATH', '')
+    if not ld_library_path:
+        return ''
+
+    filtered_paths = [
+        path for path in ld_library_path.split(':')
+        if path and '/snap/' not in path
+    ]
+    return ':'.join(filtered_paths)
 
 
 def generate_launch_description():
@@ -48,6 +67,42 @@ def generate_launch_description():
                 )
             )
 
+    clean_env_actions = [
+        SetEnvironmentVariable(
+            name='LD_LIBRARY_PATH',
+            value=_clean_ld_library_path()
+        ),
+    ]
+
+    for env_var in [
+        'SNAP',
+        'SNAP_ARCH',
+        'SNAP_COMMON',
+        'SNAP_CONTEXT',
+        'SNAP_COOKIE',
+        'SNAP_DATA',
+        'SNAP_EUID',
+        'SNAP_INSTANCE_NAME',
+        'SNAP_LAUNCHER_ARCH_TRIPLET',
+        'SNAP_LIBRARY_PATH',
+        'SNAP_NAME',
+        'SNAP_REAL_HOME',
+        'SNAP_REVISION',
+        'SNAP_UID',
+        'SNAP_USER_COMMON',
+        'SNAP_USER_DATA',
+        'SNAP_VERSION',
+        'GDK_PIXBUF_MODULEDIR',
+        'GDK_PIXBUF_MODULE_FILE',
+        'GIO_MODULE_DIR',
+        'GSETTINGS_SCHEMA_DIR',
+        'GTK_EXE_PREFIX',
+        'GTK_IM_MODULE_FILE',
+        'GTK_PATH',
+        'XDG_DATA_HOME',
+    ]:
+        clean_env_actions.append(UnsetEnvironmentVariable(name=env_var))
+
     world_file = PathJoinSubstitution([
         FindPackageShare('kumi_sim'),
         'worlds',
@@ -76,6 +131,7 @@ def generate_launch_description():
     ])
 
     return LaunchDescription([
+        *clean_env_actions,
         *gz_env,
         declare_world,
         declare_namespace,

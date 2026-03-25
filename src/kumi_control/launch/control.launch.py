@@ -119,7 +119,6 @@ def generate_launch_description():
     joint_state_broadcaster_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        namespace=namespace,
         arguments=[
             'joint_state_broadcaster',
             '--controller-manager', controller_manager_name,
@@ -132,7 +131,6 @@ def generate_launch_description():
     trajectory_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        namespace=namespace,
         arguments=[
             'multi_joint_trajectory_controller',
             '--controller-manager', controller_manager_name,

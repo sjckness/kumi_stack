@@ -5,19 +5,26 @@ controller_manager:
     update_rate: 1000
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
-      update_rate: 100
     multi_joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
-      update_rate: 1000
 
-multi_joint_trajectory_controller:
-  ros__parameters:
-    joints:
-    - front_sh
-    - front_ank_y
-    - front_ank_z
-    - rear_sh
-    - rear_ank_y
-    - rear_ank_z
-    state_interfaces: [ position, velocity ]
-    command_interfaces: [ position ]
+/**:
+  joint_state_broadcaster:
+    ros__parameters:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+  multi_joint_trajectory_controller:
+    ros__parameters:
+      type: joint_trajectory_controller/JointTrajectoryController
+      joints:
+      - front_sh
+      - front_ank_y
+      - front_ank_z
+      - rear_sh
+      - rear_ank_y
+      - rear_ank_z
+      command_interfaces:
+      - position
+      state_interfaces:
+      - position
+      - velocity
