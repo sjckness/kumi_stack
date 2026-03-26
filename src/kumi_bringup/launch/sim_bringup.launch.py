@@ -24,6 +24,7 @@ def generate_launch_description():
     use_gz_bridge = LaunchConfiguration('use_gz_bridge')
     use_rviz = LaunchConfiguration('use_rviz')
     use_joint_state_publisher_gui = LaunchConfiguration('use_joint_state_publisher_gui')
+    use_control_gui = LaunchConfiguration('use_control_gui')
     gz_start_delay = LaunchConfiguration('gz_start_delay')
     spawn_delay = LaunchConfiguration('spawn_delay')
     spawner_delay = LaunchConfiguration('spawner_delay')
@@ -76,6 +77,12 @@ def generate_launch_description():
         description='Launch joint_state_publisher_gui from description.launch.py'
     )
 
+    declare_use_control_gui = DeclareLaunchArgument(
+        'use_control_gui',
+        default_value='false',
+        description='Launch the control GUI from kumi_control'
+    )
+
     declare_gz_start_delay = DeclareLaunchArgument(
         'gz_start_delay',
         default_value='2.0',
@@ -104,6 +111,12 @@ def generate_launch_description():
         }.items()
     )
 
+    controllers_file = PathJoinSubstitution([
+        FindPackageShare('kumi_control'),
+        'config',
+        'trajectory_control_config.yaml'
+    ])
+
     description_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(description_pkg_share, 'launch', 'description.launch.py')
@@ -116,6 +129,7 @@ def generate_launch_description():
             'use_rviz': use_rviz,
             'robot_name': robot_name,
             'ros_namespace': ros_namespace,
+            'control_config': controllers_file,
         }.items()
     )
 
@@ -138,6 +152,7 @@ def generate_launch_description():
             'controller_manager_name': controller_manager_name,
             'spawner_delay': spawner_delay,
             'namespace': ros_namespace,
+            'use_gui': use_control_gui,
         }.items()
     )
 
@@ -150,12 +165,6 @@ def generate_launch_description():
         FindPackageShare('kumi_description'),
         'urdf',
         'kumi.xacro'
-    ])
-
-    controllers_file = PathJoinSubstitution([
-        FindPackageShare('kumi_control'),
-        'config',
-        'trajectory_control_config.yaml'
     ])
 
     robot_description_str = Command([
@@ -220,6 +229,19 @@ def generate_launch_description():
         ]
     )
 
+    bt_tree_node = TimerAction(
+        period=spawn_delay,
+        actions=[
+            Node(
+                package='kumi_behavior',
+                executable='bt_node',
+                namespace=ros_namespace,
+                parameters=[{'use_sim_time': use_sim_time}],
+                output='screen',
+            ),
+        ]
+    )
+
     return LaunchDescription([
         declare_world,
         declare_ros_namespace,
@@ -229,10 +251,12 @@ def generate_launch_description():
         declare_use_gz_bridge,
         declare_use_rviz,
         declare_use_joint_state_publisher_gui,
+        declare_use_control_gui,
         declare_gz_start_delay,
         declare_spawn_delay,
         declare_spawner_delay,
         sim_launch,
         delayed_robot_stack,
         delayed_spawn_and_control,
+        bt_tree_node,
     ])

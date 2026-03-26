@@ -73,6 +73,7 @@ def generate_launch_description():
     use_rviz = LaunchConfiguration('use_rviz')
     robot_name = LaunchConfiguration('robot_name')
     ros_namespace = LaunchConfiguration('ros_namespace')
+    control_config = LaunchConfiguration('control_config')
 
     declare_use_sim_time = DeclareLaunchArgument(
         'use_sim_time',
@@ -116,6 +117,16 @@ def generate_launch_description():
         description='ROS namespace used by ros2_control and description'
     )
 
+    declare_control_config = DeclareLaunchArgument(
+        'control_config',
+        default_value=PathJoinSubstitution([
+            FindPackageShare('kumi_control'),
+            'config',
+            'trajectory_control_config.yaml'
+        ]),
+        description='Path to the ros2_control controllers yaml file'
+    )
+
     xacro_file = PathJoinSubstitution([
         FindPackageShare(pkg_name),
         'urdf',
@@ -135,7 +146,8 @@ def generate_launch_description():
         ' enable_sensors:=', enable_sensors,
         ' robot_name:=', robot_name,
         ' pkg_share:=', pkg_share,
-        ' ros_namespace:=', ros_namespace
+        ' ros_namespace:=', ros_namespace,
+        ' control_config:=', control_config,
     ])
 
     robot_description = {
@@ -185,6 +197,7 @@ def generate_launch_description():
         declare_use_rviz,
         declare_robot_name,
         declare_ros_namespace,
+        declare_control_config,
         joint_state_publisher_gui,
         robot_state_publisher,
         rviz2,

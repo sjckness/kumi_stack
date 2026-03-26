@@ -2,6 +2,12 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="kumi">
 
     <xacro:arg name="pkg_share" default="$(find kumi_description)" />
+    <xacro:arg name="robot_name" default="bruno" />
+    <xacro:arg name="ros_namespace" default="kumi" />
+    <xacro:arg name="enable_sensors" default="true" />
+    <xacro:arg name="use_sim" default="false" />
+    <xacro:arg name="control_config" default="$(find kumi_control)/config/trajectory_control_config.yaml" />
+
     <xacro:property name="pkg_share" value="$(arg pkg_share)"/>
 
     <xacro:include filename="${pkg_share}/urdf/macros.xacro" />

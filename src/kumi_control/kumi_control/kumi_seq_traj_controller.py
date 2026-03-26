@@ -3,15 +3,22 @@ import rclpy
 from rclpy.node import Node
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
+from std_msgs.msg import Bool, String
 import csv
 import math
 from pathlib import Path
 from ament_index_python.packages import get_package_share_directory
 
 
+GAIT_TO_CSV = {
+    'walk': 'demo_flip_500.csv',
+}
+
+
 class CSVJointTrajectory(Node):
     def __init__(self, csv_path: str | None = None):
         super().__init__('csv_joint_trajectory')
+        self.walk_enabled = True
 
         self.declare_parameter(
             'trajectory_topic',
@@ -25,6 +32,18 @@ class CSVJointTrajectory(Node):
             trajectory_topic,
             10
         )
+        self.enable_sub = self.create_subscription(
+            Bool,
+            '/kumi_seq_traj_controller/enabled',
+            self.enable_callback,
+            10
+        )
+        self.gait_sub = self.create_subscription(
+            String,
+            '/kumi_seq_traj_controller/gait',
+            self.gait_callback,
+            10
+        )
 
         # Joint names
         self.joint_names = [
@@ -35,7 +54,12 @@ class CSVJointTrajectory(Node):
         self.frequency = 10 #hz
 
         pkg_share = Path(get_package_share_directory('kumi_control'))
-        default_csv = pkg_share / 'resource/demo_flip_500.csv'
+        self.gait_csv_map = {
+            gait: pkg_share / 'resource' / relative_path
+            for gait, relative_path in GAIT_TO_CSV.items()
+        }
+        self.current_gait = 'walk'
+        default_csv = self.gait_csv_map[self.current_gait]
 
         # consenti override via parametro ROS o argomento esplicito
         self.declare_parameter('csv_path', str(default_csv))
@@ -46,14 +70,17 @@ class CSVJointTrajectory(Node):
             raise FileNotFoundError(f"CSV non trovato: {csv_path}")
 
         self.positions_list = self.load_csv_in_radians(csv_path)
+        self.current_csv_path = csv_path
 
-        self.get_logger().info(f"Pubblico traiettorie su: {trajectory_topic}")
+        #elf.get_logger().info(f"Pubblico traiettorie su: {trajectory_topic}")
+        self.get_logger().info(f"Gait disponibili: {list(self.gait_csv_map.keys())}")
+        self.get_logger().info(f"Gait iniziale: {self.current_gait} -> {self.current_csv_path}")
+        self.get_logger().info("Walk controller enabled at startup.")
         self.get_logger().info(f"Caricate {len(self.positions_list)} pose dal CSV (in radianti).")
-        self.get_logger().info("Invio automatico di un punto ogni 2.0 secondi (0.5 Hz).")
 
         self.index = 0
 
-        # 🔔 TIMER: 5 Hz = periodo 0.2 secondi
+        # Timer che pubblica solo quando il BT abilita la camminata.
         self.timer = self.create_timer(1/self.frequency, self.timer_callback)
 
     def load_csv_in_radians(self, path):
@@ -67,13 +94,56 @@ class CSVJointTrajectory(Node):
         return positions
 
     def timer_callback(self):
-        """Chiamata automaticamente ogni 2 secondi dal timer."""
+        if not self.walk_enabled:
+            return
+
         self.send_next_point()
+
+    def enable_callback(self, msg: Bool):
+        if self.walk_enabled == msg.data:
+            return
+
+        self.walk_enabled = msg.data
+        state = 'enabled' if self.walk_enabled else 'disabled'
+        if self.walk_enabled:
+            self.get_logger().info(
+                f"Walk controller {state}. Resuming from CSV index {self.index}."
+            )
+        else:
+            self.get_logger().info(
+                f"Walk controller {state}. Pausing at CSV index {self.index}."
+            )
+
+    def gait_callback(self, msg: String):
+        requested_gait = msg.data.strip()
+        csv_path = self.gait_csv_map.get(requested_gait)
+
+        if csv_path is None:
+            self.get_logger().warn(
+                f"Gait '{requested_gait}' non configurato. "
+                f"Disponibili: {list(self.gait_csv_map.keys())}"
+            )
+            return
+
+        if requested_gait == self.current_gait:
+            return
+
+        if not csv_path.exists():
+            self.get_logger().warn(f"CSV per gait '{requested_gait}' non trovato: {csv_path}")
+            return
+
+        self.positions_list = self.load_csv_in_radians(csv_path)
+        self.current_gait = requested_gait
+        self.current_csv_path = csv_path
+        self.index = 0
+        self.get_logger().info(
+            f"Gait cambiato in '{self.current_gait}' usando {self.current_csv_path}"
+        )
 
     def send_next_point(self):
         # Se siamo alla fine → ricomincia da capo
         if self.index >= len(self.positions_list):
-            self.get_logger().info("Sequenza completata. Ripartenza da capo.")
+            #self.get_logger().info("Sequenza completata. Ripartenza da capo.")
             self.index = 0
 
         positions = self.positions_list[self.index]
@@ -90,7 +160,7 @@ class CSVJointTrajectory(Node):
         traj.points.append(point)
 
         self.pub.publish(traj)
-        self.get_logger().info(f"[{self.index}] inviato punto: {positions}")
+        #self.get_logger().info(f"[{self.index}] inviato punto: {positions}")
 
         self.index += 1
 

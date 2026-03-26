@@ -2,11 +2,12 @@
 
 set -euo pipefail
 
+# === PATH SETUP ===
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SRC_DIR="${WS_DIR}/src"
-VENV_DIR="${WS_DIR}/.venv"
 
+# === DETECT ROS DISTRO ===
 detect_ros_distro() {
   if [[ -n "${ROS_DISTRO:-}" ]]; then
     echo "${ROS_DISTRO}"
@@ -39,9 +40,9 @@ fi
 
 echo "Workspace: ${WS_DIR}"
 echo "ROS_DISTRO: ${ROS_DISTRO_NAME}"
-echo "Python venv: ${VENV_DIR}"
 echo
 
+# === SOURCE ROS ===
 set +u
 source "${ROS_SETUP}"
 set -u
@@ -53,10 +54,26 @@ sudo apt-get install -y \
   build-essential \
   git \
   python3-pip \
-  python3-venv \
   python3-colcon-common-extensions \
   python3-rosdep \
-  python3-vcstool
+  python3-vcstool \
+  pipx \
+  "ros-${ROS_DISTRO_NAME}-py-trees" \
+  "ros-${ROS_DISTRO_NAME}-rclpy" \
+  "ros-${ROS_DISTRO_NAME}-tf2-ros" \
+  "ros-${ROS_DISTRO_NAME}-std-msgs"
+
+echo "Checking Poetry..."
+
+if ! command -v poetry &> /dev/null; then
+  echo "Installing Poetry..."
+  pipx ensurepath
+  pipx install poetry
+
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+
+echo "Using $(poetry --version)"
 
 echo "Setting up rosdep..."
 
@@ -66,28 +83,14 @@ fi
 
 rosdep update
 
-echo "Creating Python virtual environment..."
-if [[ ! -d "${VENV_DIR}" ]]; then
-  python3 -m venv "${VENV_DIR}"
-fi
-
-set +u
-source "${VENV_DIR}/bin/activate"
-set -u
-
-echo "Installing Python dependencies..."
-python3 -m pip install --upgrade pip
-python3 -m pip install \
-  numpy \
-  PyYAML \
-  empy \
-  catkin-pkg \
-  lark \
-  jinja2 \
-  typeguard
+echo "Installing Python dependencies via Poetry..."
+cd "${WS_DIR}"
+poetry config virtualenvs.in-project true --local
+poetry install --no-root
 
 echo "Installing ROS dependencies from src..."
 echo "Skipping rosdep key: ament_python"
+echo "Note: Python packages used inside the workspace venv are installed via Poetry."
 
 rosdep install \
   --from-paths "${SRC_DIR}" \
@@ -97,20 +100,10 @@ rosdep install \
   -r -y
 
 echo "Building workspace..."
-cd "${WS_DIR}"
 colcon build --symlink-install
 
 cat <<EOF
 
 INSTALLAZIONE COMPLETATA
-
-Python packages installati esplicitamente:
-- numpy
-- PyYAML
-- empy
-- catkin-pkg
-- lark
-- jinja2
-- typeguard
 
 EOF

@@ -18,6 +18,7 @@ def generate_launch_description():
     robot_name = LaunchConfiguration('robot_name')
     start_controller_manager = LaunchConfiguration('start_controller_manager')
     namespace = LaunchConfiguration('namespace')
+    use_gui = LaunchConfiguration('use_gui')
 
     declare_namespace = DeclareLaunchArgument(
         'namespace',
@@ -87,6 +88,12 @@ def generate_launch_description():
         description='Start a ros2_control_node (disable when controller manager is provided by the simulator)'
     )
 
+    declare_use_gui = DeclareLaunchArgument(
+        'use_gui',
+        default_value='false',
+        description='Launch the Tkinter control GUI'
+    )
+
     xacro_file = PathJoinSubstitution([
         FindPackageShare('kumi_description'),
         'urdf',
@@ -140,11 +147,37 @@ def generate_launch_description():
         output='screen',
     )
 
+    seq_traj_controller = Node(
+        package='kumi_control',
+        executable='kumi_seq_traj_controller',
+        parameters=[
+            {
+                'use_sim_time': use_sim_time,
+                'trajectory_topic': PathJoinSubstitution([
+                    TextSubstitution(text='/'),
+                    namespace,
+                    'multi_joint_trajectory_controller',
+                    'joint_trajectory'
+                ]),
+            }
+        ],
+        output='screen',
+    )
+
+    control_gui = Node(
+        package='kumi_control',
+        executable='kumi_control_gui',
+        output='screen',
+        condition=IfCondition(use_gui),
+    )
+
     delayed_spawners = TimerAction(
         period=spawner_delay,
         actions=[
             joint_state_broadcaster_spawner,
             trajectory_controller_spawner,
+            seq_traj_controller,
+            control_gui,
         ]
     )
 
@@ -158,6 +191,7 @@ def generate_launch_description():
         declare_robot_name,
         declare_namespace,
         declare_start_controller_manager,
+        declare_use_gui,
         declare_controller_manager_timeout,
         controller_manager,
         delayed_spawners,
