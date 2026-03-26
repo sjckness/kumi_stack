@@ -12,6 +12,9 @@ from ament_index_python.packages import get_package_share_directory
 
 GAIT_TO_CSV = {
     'walk': 'demo_flip_500.csv',
+    'flip': 'demo_flip_500.csv',
+    'backflip': 'backflip.csv',
+    'accovacciato': 'accovacciato.csv',
 }
 
 
