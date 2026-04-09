@@ -1,5 +1,5 @@
 # kumi_stack
-![Descrizione immagine](assets/kumi.png)
+![Kumi robot](assets/kumi.png)
 
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04-E95420?)
 ![ROS](https://img.shields.io/badge/ROS-2_Jazzy-22314E?logo=ros)
@@ -15,6 +15,7 @@ ROS 2 workspace for the `kumi` robot, including robot description, control, Gaze
 - [Launch](#launch)
 - [Controller](#controller)
 - [Sensors](#sensors)
+- [Gazebo Interface](#gazebo-interface)
 - [Useful Commands](#useful-commands)
 
 ## Package Overview
@@ -197,6 +198,41 @@ You can disable sensors with:
 ```bash
 ros2 launch kumi_bringup sim_bringup.launch.py enable_sensors:=false
 ```
+
+## Gazebo interface
+
+When you launch the full simulation, Gazebo loads the custom `my_gz_gui_plugin` panel directly inside the GUI. The panel is docked in the Gazebo sidebar and acts as the main operator interface for spawned robots.
+
+![Gazebo GUI](assets/gui_v4.png)
+
+Main GUI features:
+- `Robot` selector to choose which spawned robot the panel is currently controlling
+- `EMERGENCY ON/OFF` toggle to publish the emergency state for the selected robot
+- `Walk` checkbox to enable or disable walking commands
+- `Gait` dropdown to switch the active gait command
+- `Spawn / Despawn` tools to create or remove models from the current world
+- `update entities` button to refresh the list of robots and available spawnable models
+- front camera preview for the selected robot, with a small toggle to show or hide the camera panel
+
+How it works:
+- the GUI discovers robots currently present in the Gazebo world and updates its dropdown lists automatically
+- when a robot is selected, the plugin publishes commands on Gazebo transport topics derived from that robot name
+- the camera panel subscribes to `/<robot_name>/front_camera/image` and shows the live image when sensors are enabled
+- spawn and remove actions use the active world transport services configured in the world SDF file
+
+Typical workflow:
+1. Launch the simulation with `ros2 launch kumi_bringup sim_bringup.launch.py`.
+2. Wait for Gazebo to open and for the `Kumi Control` panel to appear.
+3. Select a robot in the `Robot` dropdown.
+4. Use `EMERGENCY`, `Walk`, and `Gait` to change behavior for that robot.
+5. Use the lower section to spawn additional entities or remove existing ones.
+6. Open the camera preview if you want to monitor the robot front camera.
+
+Notes:
+- the GUI is part of the Gazebo world configuration, so it appears automatically in worlds that include the plugin
+- the front camera preview only works when the robot is launched with sensors enabled
+- if the robot list looks outdated, press `update entities`
+
 
 ## Useful Commands
 

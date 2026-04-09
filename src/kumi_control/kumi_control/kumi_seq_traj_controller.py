@@ -12,9 +12,18 @@ from ament_index_python.packages import get_package_share_directory
 
 GAIT_TO_CSV = {
     'walk': 'demo_flip_500.csv',
-    'flip': 'demo_flip_500.csv',
+    'frontflip': 'demo_flip_500.csv',
+    'backwalk': 'backflip.csv',
     'backflip': 'backflip.csv',
     'accovacciato': 'accovacciato.csv',
+}
+
+GAIT_EXECUTION_MODE = {
+    'walk': 'loop',
+    'frontflip': 'single',
+    'backwalk': 'loop',
+    'backflip': 'single',
+    'accovacciato': 'single',
 }
 
 
@@ -37,13 +46,13 @@ class CSVJointTrajectory(Node):
         )
         self.enable_sub = self.create_subscription(
             Bool,
-            '/kumi_seq_traj_controller/enabled',
+            'kumi_seq_traj_controller/enabled',
             self.enable_callback,
             10
         )
         self.gait_sub = self.create_subscription(
             String,
-            '/kumi_seq_traj_controller/gait',
+            'kumi_seq_traj_controller/gait',
             self.gait_callback,
             10
         )
@@ -62,6 +71,7 @@ class CSVJointTrajectory(Node):
             for gait, relative_path in GAIT_TO_CSV.items()
         }
         self.current_gait = 'walk'
+        self.current_mode = GAIT_EXECUTION_MODE[self.current_gait]
         default_csv = self.gait_csv_map[self.current_gait]
 
         # consenti override via parametro ROS o argomento esplicito
@@ -137,17 +147,24 @@ class CSVJointTrajectory(Node):
 
         self.positions_list = self.load_csv_in_radians(csv_path)
         self.current_gait = requested_gait
+        self.current_mode = GAIT_EXECUTION_MODE[requested_gait]
         self.current_csv_path = csv_path
         self.index = 0
         self.get_logger().info(
-            f"Gait cambiato in '{self.current_gait}' usando {self.current_csv_path}"
+            f"Gait cambiato in '{self.current_gait}' ({self.current_mode}) usando {self.current_csv_path}"
         )
 
     def send_next_point(self):
-        # Se siamo alla fine → ricomincia da capo
         if self.index >= len(self.positions_list):
-            #self.get_logger().info("Sequenza completata. Ripartenza da capo.")
-            self.index = 0
+            if self.current_mode == 'loop':
+                self.index = 0
+            else:
+                self.walk_enabled = False
+                self.index = len(self.positions_list)
+                self.get_logger().info(
+                    f"Gait '{self.current_gait}' completato. Walk controller disabled."
+                )
+                return
 
         positions = self.positions_list[self.index]
 

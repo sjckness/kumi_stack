@@ -5,7 +5,7 @@ class ChangeGait(py_trees.behaviour.Behaviour):
     def __init__(self, name, node):
         super().__init__(name)
         self.node = node
-        self.gait_pub = node.create_publisher(String, '/kumi_seq_traj_controller/gait', 10)
+        self.gait_pub = node.create_publisher(String, 'kumi_seq_traj_controller/gait', 10)
 
     def update(self):
         self.node.current_gait = self.node.requested_gait

@@ -26,7 +26,7 @@
         <joint name="front_camera_joint" type="fixed">
             <parent link="realsense"/>
             <child link="front_camera"/>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <origin xyz="-0.03 0 0" rpy="0 0 3.141592653589793"/>
         </joint>
 
         <gazebo reference="front_camera">
@@ -34,8 +34,8 @@
                 <always_on>true</always_on>
                 <visualize>true</visualize>
                 <update_rate>30</update_rate>
-                <topic>front_camera/image</topic>
-                <camera_info_topic>front_camera/camera_info</camera_info_topic>
+                <topic>$(arg ros_namespace)/front_camera/image</topic>
+                <camera_info_topic>$(arg ros_namespace)/front_camera/camera_info</camera_info_topic>
                 <gz_frame_id>front_camera</gz_frame_id>
                 <camera>
                     <horizontal_fov>1.3962634</horizontal_fov>
@@ -76,7 +76,7 @@
         <joint name="front_depth_joint" type="fixed">
             <parent link="realsense"/>
             <child link="front_depth"/>
-            <origin xyz="0.005 0 0" rpy="0 0 0"/>
+            <origin xyz="-0.035 0 0.015" rpy="0 0 3.141592653589793"/>
         </joint>
 
         <gazebo reference="front_depth">
@@ -84,8 +84,8 @@
                 <always_on>true</always_on>
                 <visualize>true</visualize>
                 <update_rate>20</update_rate>
-                <topic>front_depth/image</topic>
-                <camera_info_topic>front_depth/camera_info</camera_info_topic>
+                <topic>$(arg ros_namespace)/front_depth/image</topic>
+                <camera_info_topic>$(arg ros_namespace)/front_depth/camera_info</camera_info_topic>
                 <gz_frame_id>front_depth</gz_frame_id>
                 <camera>
                     <horizontal_fov>1.22173</horizontal_fov>

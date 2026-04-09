@@ -46,6 +46,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'spawn_despawn_node = kumi_sim.spawn_despawn_node:main'
         ],
     },
 )

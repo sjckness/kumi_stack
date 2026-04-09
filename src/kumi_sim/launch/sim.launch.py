@@ -6,15 +6,14 @@ from launch import LaunchDescription
 from launch.actions import (
     AppendEnvironmentVariable,
     DeclareLaunchArgument,
-    GroupAction,
     IncludeLaunchDescription,
     SetEnvironmentVariable,
     UnsetEnvironmentVariable,
 )
+from launch_ros.actions import Node
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, TextSubstitution, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.actions import PushRosNamespace
 
 
 def _clean_ld_library_path():
@@ -35,9 +34,13 @@ def generate_launch_description():
 
     world = LaunchConfiguration('world')
     namespace = LaunchConfiguration('namespace')
+    robot_xacro = LaunchConfiguration('robot_xacro')
+    robot_name = LaunchConfiguration('robot_name')
+    enable_sensors = LaunchConfiguration('enable_sensors')
+
     declare_world = DeclareLaunchArgument(
         'world',
-        default_value='my_empty',
+        default_value='piazza',
         description='World name without .sdf extension'
     )
 
@@ -45,6 +48,24 @@ def generate_launch_description():
         'namespace',
         default_value='kumi',
         description='namespace'
+    )
+
+    declare_robot_xacro = DeclareLaunchArgument(
+        'robot_xacro',
+        default_value='kumi.xacro',
+        description='Xacro filename passed to spawn_despawn_node'
+    )
+
+    declare_robot_name = DeclareLaunchArgument(
+        'robot_name',
+        default_value='bruno',
+        description='Robot name used by spawn_despawn_node'
+    )
+
+    declare_enable_sensors = DeclareLaunchArgument(
+        'enable_sensors',
+        default_value='true',
+        description='Enable sensors for spawn_despawn_node xacro processing'
     )
 
     resource_paths = [
@@ -109,31 +130,44 @@ def generate_launch_description():
         world
     ])
 
-    gz_sim = GroupAction([
-        PushRosNamespace(namespace),
+    gz_sim = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                FindPackageShare('ros_gz_sim').find('ros_gz_sim'),
+                'launch',
+                'gz_sim.launch.py'
+            )
+        ),
+        launch_arguments={
+            'gz_args': [
+                world_file,
+                TextSubstitution(text='.sdf'),
+                TextSubstitution(text=' -v 5 -r')
+            ]
+        }.items()
+    )
 
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                os.path.join(
-                    FindPackageShare('ros_gz_sim').find('ros_gz_sim'),
-                    'launch',
-                    'gz_sim.launch.py'
-                )
-            ),
-            launch_arguments={
-                'gz_args': [
-                    world_file,
-                    TextSubstitution(text='.sdf'),
-                    TextSubstitution(text=' -v 5 -r')
-                ]
-            }.items()
-        )
-    ])
+    spawn_despawn_node = Node(
+        package='kumi_sim',
+        executable='spawn_despawn_node',
+        parameters=[{
+            'world': world,
+            'xacro_file': robot_xacro,
+            'robot_name': robot_name,
+            'ros_namespace': namespace,
+            'enable_sensors': enable_sensors,
+        }],
+        output='screen',
+    )
 
     return LaunchDescription([
         *clean_env_actions,
         *gz_env,
         declare_world,
         declare_namespace,
+        declare_robot_xacro,
+        declare_robot_name,
+        declare_enable_sensors,
         gz_sim,
+        spawn_despawn_node,
     ])

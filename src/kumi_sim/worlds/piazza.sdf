@@ -1,0 +1,278 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="piazza">
+
+    <!-- ═══════════════════════════════════════════════
+         Physics
+    ═══════════════════════════════════════════════ -->
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <!-- ═══════════════════════════════════════════════
+         Required plugins
+    ═══════════════════════════════════════════════ -->
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-contact-system"
+            name="gz::sim::systems::Contact"/>
+    <plugin filename="gz-sim-sensors-system"
+            name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <!-- ═══════════════════════════════════════════════
+         Sky and lighting
+    ═══════════════════════════════════════════════ -->
+    <scene>
+      <ambient>0.6 0.6 0.6 1</ambient>
+      <background>0.53 0.81 0.98 1</background>
+      <sky>
+        <clouds>
+          <speed>8</speed>
+        </clouds>
+      </sky>
+      <shadows>true</shadows>
+    </scene>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 20 0 0 0</pose>
+      <diffuse>0.95 0.90 0.75 1</diffuse>
+      <specular>0.3 0.3 0.3 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.4 0.1 -0.8</direction>
+    </light>
+
+    <!-- Fill light (soft, opposite side) -->
+    <light type="directional" name="fill_light">
+      <cast_shadows>false</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.3 0.3 0.4 1</diffuse>
+      <specular>0.0 0.0 0.0 1</specular>
+      <direction>0.4 -0.1 -0.6</direction>
+    </light>
+
+    <!-- ═══════════════════════════════════════════════
+         Ground plane (stone-like finish)
+    ═══════════════════════════════════════════════ -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>50 50</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>50 50</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.72 0.68 0.60 1</ambient>
+            <diffuse>0.72 0.68 0.60 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <!-- ═══════════════════════════════════════════════
+        Ground plane (stone-like finish)
+    ═══════════════════════════════════════════════ -->
+
+    <gui fullscreen="0">
+      <!-- 3D scene -->
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <gz-gui>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">floating</property>
+          <property type="bool" key="visible">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive View Control">
+        <gz-gui>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">floating</property>
+          <property type="bool" key="visible">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="CameraTracking" name="Camera Tracking">
+        <gz-gui>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">floating</property>
+          <property type="bool" key="visible">false</property>
+        </gz-gui>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <gz-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">floating</property>
+          <property type="double" key="x">0</property>
+          <property type="double" key="y">0</property>
+          <property type="double" key="width">250</property>
+          <property type="double" key="height">50</property>
+        </gz-gui>
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+      </plugin>
+      <plugin filename="WorldStats" name="World stats">
+        <gz-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">floating</property>
+          <property type="double" key="x">250</property>
+          <property type="double" key="y">0</property>
+          <property type="double" key="width">250</property>
+          <property type="double" key="height">50</property>
+        </gz-gui>
+      </plugin>
+
+      <!-- Custom robot control plugin -->
+      <plugin filename="my_gz_gui_plugin"
+              name="my_gz_gui_plugin::MyGuiPlugin">
+        <gz-gui>
+          <title>Robot Control</title>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+        <topic_spawn>/world/piazza/create</topic_spawn>
+        <topic_remove>/world/piazza/remove</topic_remove>
+        <topic_set_pose>/world/piazza/set_pose</topic_set_pose>
+        <topic_physics>/world/piazza/set_physics</topic_physics>
+        <topic_emergency>/kumi/kumi_behavior/emergency</topic_emergency>
+        <topic_walk_enabled>/kumi/kumi_seq_traj_controller/enabled</topic_walk_enabled>
+        <topic_gait>/kumi/kumi_seq_traj_controller/gait</topic_gait>
+        <title>Kumi Control</title>
+      </plugin>
+    </gui>
+
+    <!-- ═══════════════════════════════════════════════
+         Fuel models  (downloaded on first run)
+    ═══════════════════════════════════════════════ -->
+
+    <!-- Oak trees around the perimeter -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak Tree</uri>
+      <name>tree_1</name>
+      <pose>5.0  5.0  0  0  0  0.3</pose>
+    </include>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak Tree</uri>
+      <name>tree_2</name>
+      <pose>-5.0  5.0  0  0  0  -0.5</pose>
+    </include>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak Tree</uri>
+      <name>tree_3</name>
+      <pose>5.0  -5.0  0  0  0  1.1</pose>
+    </include>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak Tree</uri>
+      <name>tree_4</name>
+      <pose>-5.0  -5.0  0  0  0  -1.2</pose>
+    </include>
+
+    <!-- Lamp posts -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Lamp Post</uri>
+      <name>lamp_1</name>
+      <pose>3.5  0.0  0  0  0  0</pose>
+    </include>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Lamp Post</uri>
+      <name>lamp_2</name>
+      <pose>-3.5  0.0  0  0  0  3.14159</pose>
+    </include>
+
+    <!-- Benches -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/AirportBench</uri>
+      <name>bench_1</name>
+      <pose>2.0  2.5  0  0  0  -0.785</pose>
+    </include>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/AirportBench</uri>
+      <name>bench_2</name>
+      <pose>-2.0  -2.5  0  0  0  2.356</pose>
+    </include>
+
+    <!-- Fire hydrant (good navigation obstacle) -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fire Hydrant</uri>
+      <name>hydrant_1</name>
+      <pose>1.5  -2.0  0  0  0  0</pose>
+    </include>
+
+    <!-- Cardboard boxes (small obstacles / clutter) -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Cardboard Box</uri>
+      <name>box_1</name>
+      <pose>-1.5  1.5  0  0  0  0.6</pose>
+    </include>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Cardboard Box</uri>
+      <name>box_2</name>
+      <pose>-1.8  1.9  0  0  0  -0.4</pose>
+    </include>
+
+    <!-- Jersey barrier (larger obstacle) -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Jersey Barrier</uri>
+      <name>barrier_1</name>
+      <pose>0.0  3.5  0  0  0  1.5708</pose>
+    </include>
+
+    <!-- Mailbox -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Mailbox</uri>
+      <name>mailbox_1</name>
+      <pose>-3.0  1.0  0  0  0  0</pose>
+    </include>
+
+  </world>
+</sdf>

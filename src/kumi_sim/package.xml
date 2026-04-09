@@ -11,9 +11,13 @@
 
   <depend>ament_index_python</depend>
   <depend>kumi_description</depend>
+  <depend>kumi_control</depend>
   <depend>launch</depend>
   <depend>launch_ros</depend>
   <depend>ros_gz_sim</depend>
+  <depend>std_msgs</depend>
+  <depend>xacro</depend>
+  <exec_depend>my_gz_gui_plugin</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

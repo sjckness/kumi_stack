@@ -126,6 +126,11 @@
         </inertial>
     </link>
 
+    <gazebo reference="front_foot">
+        <mu1>${foot_contact_friction}</mu1>
+        <mu2>${foot_contact_friction}</mu2>
+    </gazebo>
+
     <joint name="rear_sh" type="revolute">
         <origin xyz="${lenght/2} 0.006 0" rpy="0 0 0"/>
         <parent link="body"/>
@@ -202,5 +207,10 @@
             <inertia ixx="0.000091" ixy="0.0" ixz="0.0" iyy="0.000165" iyz="0.0" izz="0.000091"/>
         </inertial>
     </link>
+
+    <gazebo reference="rear_foot">
+        <mu1>${foot_contact_friction}</mu1>
+        <mu2>${foot_contact_friction}</mu2>
+    </gazebo>
 
 </robot>

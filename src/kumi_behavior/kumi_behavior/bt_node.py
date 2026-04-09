@@ -20,19 +20,19 @@ class BTNode(Node):
 
         self.create_subscription(
             Bool,
-            '/kumi_behavior/emergency',
+            'kumi_behavior/emergency',
             self._emergency_callback,
             10
         )
         self.create_subscription(
             Bool,
-            '/kumi_seq_traj_controller/enabled',
+            'kumi_seq_traj_controller/enabled',
             self._walk_enabled_callback,
             10
         )
         self.create_subscription(
             String,
-            '/kumi_seq_traj_controller/gait',
+            'kumi_seq_traj_controller/gait',
             self._gait_callback,
             10
         )
@@ -56,15 +56,16 @@ class BTNode(Node):
 
     def _gait_callback(self, msg: String):
         requested_gait = msg.data.strip()
-        if requested_gait:
-            self.requested_gait = requested_gait
-            self.current_gait = requested_gait
+        if not requested_gait:
+            return
+
+        self.requested_gait = requested_gait
+        self.change_gait_request = requested_gait != self.current_gait
 
     def log_tree_state(self):
         summary = self._format_tree_state()
         self.get_logger().info(
-            f"BT state: {summary} | current_gait={self.current_gait} "
-            f"| requested_gait={self.requested_gait} | walk_enabled={self.walk_enabled}"
+            f"BT state: {summary} | current_gait={self.current_gait} | walk_enabled={self.walk_enabled} "
         )
 
     def _format_tree_state(self):

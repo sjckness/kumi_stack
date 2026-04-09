@@ -177,7 +177,6 @@ def generate_launch_description():
             joint_state_broadcaster_spawner,
             trajectory_controller_spawner,
             seq_traj_controller,
-            control_gui,
         ]
     )
 

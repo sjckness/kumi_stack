@@ -60,8 +60,8 @@
     </collision>
     <inertial>
       <origin rpy="0 -1.5707963267948966 0" xyz="0 0 0"/>
-      <mass value="0.3"/>
-      <inertia ixx="0.000023773" ixy="0.0" ixz="0.0" iyy="0.000513246" iyz="0.0" izz="0.000524232"/>
+      <mass value="0.212"/>
+      <inertia ixx="0.001148663" ixy="0.0" ixz="0.0" iyy="0.001120663" iyz="-0.000045" izz="0.000046"/>
     </inertial>
   </link>
   <joint name="realsense_joint" type="fixed">
@@ -132,6 +132,10 @@
       <inertia ixx="0.000091" ixy="0.0" ixz="0.0" iyy="0.000165" iyz="0.0" izz="0.000091"/>
     </inertial>
   </link>
+  <gazebo reference="front_foot">
+    <mu1>2.0</mu1>
+    <mu2>2.0</mu2>
+  </gazebo>
   <joint name="rear_sh" type="revolute">
     <origin rpy="0 0 0" xyz="0.09 0.006 0"/>
     <parent link="body"/>
@@ -156,8 +160,8 @@
     </collision>
     <inertial>
       <origin rpy="0 -1.5707963267948966 3.141592653589793" xyz="0 0 0"/>
-      <mass value="0.3"/>
-      <inertia ixx="0.000023773" ixy="0.0" ixz="0.0" iyy="0.000513246" iyz="0.0" izz="0.000524232"/>
+      <mass value="0.212"/>
+      <inertia ixx="0.001148663" ixy="0.0" ixz="0.0" iyy="0.001120663" iyz="-0.000045" izz="0.000046"/>
     </inertial>
   </link>
   <joint name="rear_ank_y" type="revolute">
@@ -203,6 +207,10 @@
       <inertia ixx="0.000091" ixy="0.0" ixz="0.0" iyy="0.000165" iyz="0.0" izz="0.000091"/>
     </inertial>
   </link>
+  <gazebo reference="rear_foot">
+    <mu1>2.0</mu1>
+    <mu2>2.0</mu2>
+  </gazebo>
   <link name="front_camera">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>

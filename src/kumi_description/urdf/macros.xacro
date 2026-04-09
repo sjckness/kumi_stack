@@ -20,6 +20,7 @@
     <xacro:property name="toll" value="0.005" />
     <xacro:property name="mass" value="0.3" />
     <xacro:property name="joint_friction" value="0.2" />
+    <xacro:property name="foot_contact_friction" value="2.0" />
     <xacro:property name="mesh_scale" value="0.001 0.001 0.001"/>
     <xacro:property name="body_mesh" value="${mesh_dir}/body_v5.STL"/>
     <xacro:property name="leg_mesh" value="${mesh_dir}/leg_v2.stl"/>
