@@ -40,13 +40,13 @@ def generate_launch_description():
 
     declare_world = DeclareLaunchArgument(
         'world',
-        default_value='piazza',
+        default_value='my_empty',
         description='World name without .sdf extension'
     )
 
     declare_namespace = DeclareLaunchArgument(
         'namespace',
-        default_value='kumi',
+        default_value='bruno',
         description='namespace'
     )
 
@@ -159,12 +159,12 @@ def generate_launch_description():
             'gz_args': [
                 world_file,
                 TextSubstitution(text='.sdf'),
-                TextSubstitution(text=' -v 5 -r')
+                TextSubstitution(text=' -v 5 -r --gui-config '),
+                gui_config,
             ]
         }.items()
     )
 
-<<<<<<< HEAD
     spawn_despawn_node = Node(
         package='kumi_sim',
         executable='spawn_despawn_node',
@@ -177,26 +177,6 @@ def generate_launch_description():
         }],
         output='screen',
     )
-=======
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                os.path.join(
-                    FindPackageShare('ros_gz_sim').find('ros_gz_sim'),
-                    'launch',
-                    'gz_sim.launch.py'
-                )
-            ),
-            launch_arguments={
-                'gz_args': [
-                    world_file,
-                    TextSubstitution(text='.sdf'),
-                    TextSubstitution(text=' -v 5 -r --gui-config '),
-                    gui_config,
-                ]
-            }.items()
-        )
-    ])
->>>>>>> main
 
     return LaunchDescription([
         *clean_env_actions,

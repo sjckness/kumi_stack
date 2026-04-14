@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     sudo \
     python3-pip \
+    python3-venv \
     python3-colcon-common-extensions \
     python3-rosdep \
     python3-vcstool \
@@ -32,9 +33,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     x11-apps \
     && rm -rf /var/lib/apt/lists/*
 
-# Create render group so GPU device permissions work inside the container.
-# The devcontainer passes --group-add=render which maps to the host render GID.
-RUN groupadd -r render
+# Create render group if the base image does not already provide it.
+# The devcontainer also passes --group-add=render for GPU device access.
+RUN groupadd -f -r render
 
 # Initialize rosdep (as root; update happens in postCreate as the final user)
 RUN rosdep init || true

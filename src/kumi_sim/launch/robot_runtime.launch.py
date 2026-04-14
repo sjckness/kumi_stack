@@ -17,6 +17,8 @@ def generate_launch_description():
     spawner_delay = LaunchConfiguration('spawner_delay')
     use_gz_bridge = LaunchConfiguration('use_gz_bridge')
     use_control_gui = LaunchConfiguration('use_control_gui')
+    use_rviz = LaunchConfiguration('use_rviz')
+    use_joint_state_publisher_gui = LaunchConfiguration('use_joint_state_publisher_gui')
     absolute_namespace = PathJoinSubstitution([
         TextSubstitution(text='/'),
         namespace
@@ -47,7 +49,7 @@ def generate_launch_description():
 
     declare_spawner_delay = DeclareLaunchArgument(
         'spawner_delay',
-        default_value='6.0',
+        default_value='10.0',
         description='Delay before spawning controllers'
     )
 
@@ -61,6 +63,18 @@ def generate_launch_description():
         'use_control_gui',
         default_value='false',
         description='Launch the standalone control GUI'
+    )
+
+    declare_use_rviz = DeclareLaunchArgument(
+        'use_rviz',
+        default_value='false',
+        description='Launch RViz from description.launch.py'
+    )
+
+    declare_use_joint_state_publisher_gui = DeclareLaunchArgument(
+        'use_joint_state_publisher_gui',
+        default_value='false',
+        description='Launch joint_state_publisher_gui from description.launch.py'
     )
 
     controllers_file = PathJoinSubstitution([
@@ -81,8 +95,8 @@ def generate_launch_description():
             'use_sim': 'true',
             'use_sim_time': use_sim_time,
             'enable_sensors': enable_sensors,
-            'use_joint_state_publisher_gui': 'false',
-            'use_rviz': 'false',
+            'use_joint_state_publisher_gui': use_joint_state_publisher_gui,
+            'use_rviz': use_rviz,
             'robot_name': robot_name,
             'ros_namespace': namespace,
             'control_config': controllers_file,
@@ -120,6 +134,7 @@ def generate_launch_description():
     gz_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
+        name='robot_gz_bridge',
         arguments=[
             PathJoinSubstitution([
                 TextSubstitution(text='/'),
@@ -184,6 +199,8 @@ def generate_launch_description():
         declare_spawner_delay,
         declare_use_gz_bridge,
         declare_use_control_gui,
+        declare_use_rviz,
+        declare_use_joint_state_publisher_gui,
         description_launch,
         control_launch,
         gz_bridge,

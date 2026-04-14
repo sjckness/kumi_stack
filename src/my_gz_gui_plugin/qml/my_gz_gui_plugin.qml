@@ -47,15 +47,11 @@ Rectangle {
         Layout.fillWidth: true
         model: my_gz_gui_plugin.robotList
         currentIndex: model.length > 0 ? 0 : -1
-<<<<<<< HEAD
-        onCurrentTextChanged: my_gz_gui_plugin.OnSelectRobot(currentText)
-=======
         onCurrentTextChanged: {
           my_gz_gui_plugin.OnSelectRobot(currentText)
           my_gz_gui_plugin.OnSetWalkEnabled(currentText, walkCheck.checked)
           my_gz_gui_plugin.OnSetGait(currentText, gaitCombo.currentText)
         }
->>>>>>> main
       }
     }
 
@@ -93,11 +89,7 @@ Rectangle {
         id: walkCheck
         text: "Walk"
         onToggled: my_gz_gui_plugin.OnSetWalkEnabled(controlEntityCombo.currentText, checked)
-<<<<<<< HEAD
-        checked: true
-=======
         checked: false
->>>>>>> main
       }
 
       Label { text: "Gait:" }
@@ -105,10 +97,7 @@ Rectangle {
         id: gaitCombo
         Layout.fillWidth: true
         model: my_gz_gui_plugin.gaitList
-<<<<<<< HEAD
-=======
         currentIndex: model.length > 0 ? 0 : -1
->>>>>>> main
         onActivated: my_gz_gui_plugin.OnSetGait(controlEntityCombo.currentText, currentText)
       }
     }

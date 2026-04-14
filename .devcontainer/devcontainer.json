@@ -34,8 +34,8 @@
   },
   // Allow container user to talk to the host X server
   "initializeCommand": "xhost +local:docker 2>/dev/null || true",
-  // Only bootstrap when the install overlay is missing
-  "postCreateCommand": "bash -c 'if [ ! -f /workspaces/kumi_stack/install/setup.bash ]; then echo \"==> First run: bootstrap workspace\"; bash .devcontainer/setup.sh; else echo \"==> install/ already present; skipping bootstrap\"; fi'",
+  // Keep named volumes writable by the non-root developer user, then bootstrap once.
+  "postCreateCommand": "bash -lc 'sudo mkdir -p /workspaces/kumi_stack/build /workspaces/kumi_stack/install /workspaces/kumi_stack/log /workspaces/kumi_stack/.colcon; sudo chown -R ubuntu:ubuntu /workspaces/kumi_stack/build /workspaces/kumi_stack/install /workspaces/kumi_stack/log /workspaces/kumi_stack/.colcon; if [ ! -f /workspaces/kumi_stack/install/setup.bash ]; then echo \"==> First run: bootstrap workspace\"; bash .devcontainer/setup.sh; else echo \"==> install/ already present; skipping bootstrap\"; fi'",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installZsh": false,
@@ -90,6 +90,7 @@
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/kumi_stack,type=bind,consistency=cached",
   "workspaceFolder": "/workspaces/kumi_stack",
+  "updateRemoteUserUID": true,
   "forwardPorts": [
     8765
   ],
@@ -100,5 +101,5 @@
     }
   },
   "shutdownAction": "stopContainer",
-  "remoteUser": "root"
+  "remoteUser": "ubuntu"
 }

@@ -18,7 +18,7 @@ class RobotManager(Node):
         world           (str)   — nome del world in Gazebo        (default: 'my_empty')
         xacro_file      (str)   — nome del file xacro             (default: 'kumi.xacro')
         robot_name      (str)   — nome del robot nel xacro        (default: 'bruno')
-        ros_namespace   (str)   — namespace ROS 2                 (default: 'kumi')
+        ros_namespace   (str)   — namespace ROS 2                 (default: 'bruno')
         enable_sensors  (bool)  — abilita sensori nel xacro       (default: true)
         spawn_x/y/z     (float) — posizione di spawn              (default: 0.0/0.0/0.1)
 
@@ -54,7 +54,7 @@ class RobotManager(Node):
             .get_parameter_value().string_value
         )
         self.ros_namespace = (
-            self.declare_parameter('ros_namespace', 'kumi')
+            self.declare_parameter('ros_namespace', 'bruno')
             .get_parameter_value().string_value
         )
         self.enable_sensors = (

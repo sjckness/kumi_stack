@@ -7,11 +7,6 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_index_cpp REQUIRED)
-<<<<<<< HEAD
-=======
-find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
->>>>>>> main
 find_package(gz-gui8 REQUIRED)
 find_package(gz-transport13 REQUIRED)
 find_package(gz-msgs10 REQUIRED)
@@ -39,14 +34,6 @@ target_link_libraries(${PROJECT_NAME}
   gz-sim8::gz-sim8
 )
 
-<<<<<<< HEAD
-=======
-ament_target_dependencies(${PROJECT_NAME}
-  rclcpp
-  std_msgs
-)
-
->>>>>>> main
 install(
   TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib

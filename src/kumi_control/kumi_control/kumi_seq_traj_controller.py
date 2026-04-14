@@ -11,29 +11,26 @@ from ament_index_python.packages import get_package_share_directory
 
 
 GAIT_TO_CSV = {
-<<<<<<< HEAD
-    'walk': 'demo_flip_500.csv',
-    'frontflip': 'demo_flip_500.csv',
-    'backwalk': 'backflip.csv',
-    'backflip': 'backflip.csv',
-    'accovacciato': 'accovacciato.csv',
-=======
     'walk': 'flip.csv',
     'flip': 'flip.csv',
     'flip_sx': 'flip_sx.csv',
     'flip_dx': 'flip_dx.csv',
+    'bwalk': 'bflip.csv',
     'bflip': 'bflip.csv',
     'bflip_sx': 'bflip_sx.csv',
     'bflip_dx': 'bflip_dx.csv',
     'accovacciato': 'rac.csv',
->>>>>>> main
 }
 
 GAIT_EXECUTION_MODE = {
     'walk': 'loop',
-    'frontflip': 'single',
-    'backwalk': 'loop',
-    'backflip': 'single',
+    'flip': 'single',
+    'flip_sx': 'single',
+    'flip_dx': 'single',
+    'bwalk': 'loop',
+    'bflip': 'single',
+    'bflip_sx': 'single',
+    'bflip_dx': 'single',
     'accovacciato': 'single',
 }
 
@@ -41,12 +38,12 @@ GAIT_EXECUTION_MODE = {
 class CSVJointTrajectory(Node):
     def __init__(self, csv_path: str | None = None):
         super().__init__('csv_joint_trajectory')
-        self.walk_enabled = True
+        self.walk_enabled = False
         self.pending_gait = None
 
         self.declare_parameter(
             'trajectory_topic',
-            '/kumi/multi_joint_trajectory_controller/joint_trajectory'
+            '/bruno/multi_joint_trajectory_controller/joint_trajectory'
         )
         trajectory_topic = str(self.get_parameter('trajectory_topic').value)
 
@@ -100,7 +97,7 @@ class CSVJointTrajectory(Node):
         #elf.get_logger().info(f"Pubblico traiettorie su: {trajectory_topic}")
         self.get_logger().info(f"Gait disponibili: {list(self.gait_csv_map.keys())}")
         self.get_logger().info(f"Gait iniziale: {self.current_gait} -> {self.current_csv_path}")
-        self.get_logger().info("Walk controller enabled at startup.")
+        self.get_logger().info("Walk controller disabled at startup.")
         self.get_logger().info(f"Caricate {len(self.positions_list)} pose dal CSV (in radianti).")
 
         self.index = 0
@@ -175,12 +172,8 @@ class CSVJointTrajectory(Node):
 
     def _swap_gait(self, gait: str, csv_path):
         self.positions_list = self.load_csv_in_radians(csv_path)
-<<<<<<< HEAD
-        self.current_gait = requested_gait
-        self.current_mode = GAIT_EXECUTION_MODE[requested_gait]
-=======
         self.current_gait = gait
->>>>>>> main
+        self.current_mode = GAIT_EXECUTION_MODE[gait]
         self.current_csv_path = csv_path
         self.index = 0
         self.pending_gait = None
@@ -197,9 +190,11 @@ class CSVJointTrajectory(Node):
         self._swap_gait(gait, csv_path)
 
     def send_next_point(self):
-<<<<<<< HEAD
+        # Se siamo alla fine → applica pending o ricomincia da capo
         if self.index >= len(self.positions_list):
-            if self.current_mode == 'loop':
+            if self.pending_gait is not None:
+                self._apply_pending_gait()
+            elif self.current_mode == 'loop':
                 self.index = 0
             else:
                 self.walk_enabled = False
@@ -208,14 +203,6 @@ class CSVJointTrajectory(Node):
                     f"Gait '{self.current_gait}' completato. Walk controller disabled."
                 )
                 return
-=======
-        # Se siamo alla fine → applica pending o ricomincia da capo
-        if self.index >= len(self.positions_list):
-            if self.pending_gait is not None:
-                self._apply_pending_gait()
-            else:
-                self.index = 0
->>>>>>> main
 
         positions = self.positions_list[self.index]
 

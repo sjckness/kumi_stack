@@ -22,7 +22,7 @@ def generate_launch_description():
 
     declare_namespace = DeclareLaunchArgument(
         'namespace',
-        default_value='kumi',
+        default_value='bruno',
         description='Namespace'
     )
     
@@ -48,13 +48,13 @@ def generate_launch_description():
 
     declare_spawner_delay = DeclareLaunchArgument(
         'spawner_delay',
-        default_value='6.0',
+        default_value='10.0',
         description='Delay before spawning controllers'
     )
 
     declare_controller_manager_timeout = DeclareLaunchArgument(
         'controller_manager_timeout',
-        default_value='30.0',
+        default_value='60.0',
         description='Timeout (s) for spawners waiting on the controller manager'
     )
 
@@ -175,8 +175,14 @@ def generate_launch_description():
         period=spawner_delay,
         actions=[
             joint_state_broadcaster_spawner,
-            trajectory_controller_spawner,
-            seq_traj_controller,
+            TimerAction(
+                period=2.0,
+                actions=[
+                    trajectory_controller_spawner,
+                    seq_traj_controller,
+                    control_gui,
+                ],
+            ),
         ]
     )
 

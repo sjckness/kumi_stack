@@ -11,7 +11,6 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    description_pkg_share = get_package_share_directory('kumi_description')
     sim_pkg_share = get_package_share_directory('kumi_sim')
 
     world = LaunchConfiguration('world')
@@ -23,13 +22,12 @@ def generate_launch_description():
     use_rviz = LaunchConfiguration('use_rviz')
     use_joint_state_publisher_gui = LaunchConfiguration('use_joint_state_publisher_gui')
     use_control_gui = LaunchConfiguration('use_control_gui')
-    gz_start_delay = LaunchConfiguration('gz_start_delay')
     spawn_delay = LaunchConfiguration('spawn_delay')
     spawner_delay = LaunchConfiguration('spawner_delay')
 
     declare_world = DeclareLaunchArgument(
         'world',
-        default_value='piazza',
+        default_value='my_empty',
         description='World name without .sdf extension'
     )
 
@@ -77,25 +75,19 @@ def generate_launch_description():
 
     declare_use_control_gui = DeclareLaunchArgument(
         'use_control_gui',
-        default_value='true',
+        default_value='false',
         description='Launch the control GUI from kumi_control'
-    )
-
-    declare_gz_start_delay = DeclareLaunchArgument(
-        'gz_start_delay',
-        default_value='2.0',
-        description='Delay before starting the description stack'
     )
 
     declare_spawn_delay = DeclareLaunchArgument(
         'spawn_delay',
-        default_value='4.0',
+        default_value='8.0',
         description='Delay before spawning the robot and control stack'
     )
 
     declare_spawner_delay = DeclareLaunchArgument(
         'spawner_delay',
-        default_value='6.0',
+        default_value='10.0',
         description='Delay before spawning controllers in kumi_control'
     )
 
@@ -118,22 +110,6 @@ def generate_launch_description():
         'trajectory_control_config.yaml'
     ])
 
-    description_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(description_pkg_share, 'launch', 'description.launch.py')
-        ),
-        launch_arguments={
-            'use_sim': 'true',
-            'use_sim_time': use_sim_time,
-            'enable_sensors': enable_sensors,
-            'use_joint_state_publisher_gui': use_joint_state_publisher_gui,
-            'use_rviz': use_rviz,
-            'robot_name': robot_name,
-            'ros_namespace': ros_namespace,
-            'control_config': controllers_file,
-        }.items()
-    )
-
     robot_runtime_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(sim_pkg_share, 'launch', 'robot_runtime.launch.py')
@@ -146,12 +122,15 @@ def generate_launch_description():
             'spawner_delay': spawner_delay,
             'use_gz_bridge': 'true',
             'use_control_gui': use_control_gui,
+            'use_rviz': use_rviz,
+            'use_joint_state_publisher_gui': use_joint_state_publisher_gui,
         }.items()
     )
 
     clock_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
+        name='clock_bridge',
         arguments=[
             '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
         ],
@@ -191,6 +170,7 @@ def generate_launch_description():
             executable='create',
             output='screen',
             arguments=[
+                '-world', selected_world,
                 '-string', robot_description_str,
                 '-x', pose['x'],
                 '-y', pose['y'],
@@ -204,37 +184,11 @@ def generate_launch_description():
 
     spawn_entity = OpaqueFunction(function=make_spawn_entity)
 
-    delayed_robot_stack = TimerAction(
-        period=gz_start_delay,
-        actions=[description_launch]
-    )
-
     delayed_spawn_and_control = TimerAction(
         period=spawn_delay,
         actions=[
             spawn_entity,
-<<<<<<< HEAD
             robot_runtime_launch,
-=======
-            control_launch,
-            gz_bridge,
-        ]
-    )
-
-    bt_tree_node = TimerAction(
-        period=spawn_delay,
-        actions=[
-            Node(
-                package='kumi_behavior',
-                executable='bt_node',
-                parameters=[{'use_sim_time': use_sim_time}],
-                arguments=[
-                    '--ros-args',
-                    '-r', [TextSubstitution(text='__ns:=/'), robot_name],
-                ],
-                output='screen',
-            ),
->>>>>>> main
         ]
     )
 
@@ -248,11 +202,9 @@ def generate_launch_description():
         declare_use_rviz,
         declare_use_joint_state_publisher_gui,
         declare_use_control_gui,
-        declare_gz_start_delay,
         declare_spawn_delay,
         declare_spawner_delay,
         sim_launch,
         clock_bridge,
-        delayed_robot_stack,
         delayed_spawn_and_control,
     ])

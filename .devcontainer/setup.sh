@@ -7,6 +7,13 @@ set -euo pipefail
 WS_DIR="/workspaces/kumi_stack"
 cd "${WS_DIR}"
 
+if [ "${EUID}" -eq 0 ]; then
+  echo "Do not run this setup as root; use the devcontainer user instead." >&2
+  exit 1
+fi
+
+mkdir -p build install log .colcon
+
 echo "=== Sourcing ROS ==="
 set +u
 source /opt/ros/jazzy/setup.bash

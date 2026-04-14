@@ -10,11 +10,6 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>ament_index_cpp</depend>
-<<<<<<< HEAD
-=======
-  <depend>rclcpp</depend>
-  <depend>std_msgs</depend>
->>>>>>> main
   <depend>gz-gui8</depend>
   <depend>gz-transport13</depend>
   <depend>gz-msgs10</depend>
