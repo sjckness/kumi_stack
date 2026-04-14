@@ -1,0 +1,104 @@
+{
+  "name": "Kumi ROS 2 Jazzy",
+  // Build from the repo Dockerfile; keep image reproducible
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  // Reuse build/install/log artifacts across container rebuilds
+  "mounts": [
+    "source=kumi_build,target=/workspaces/kumi_stack/build,type=volume",
+    "source=kumi_install,target=/workspaces/kumi_stack/install,type=volume",
+    "source=kumi_log,target=/workspaces/kumi_stack/log,type=volume",
+    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind"
+  ],
+  // Host networking + GPU + X11 passthrough for RViz/Gazebo
+  "runArgs": [
+    "--network=host",
+    "--privileged",
+    "--device=/dev/dri",
+    "--group-add=render",
+    "--group-add=video",
+    "--gpus=all"
+  ],
+  "containerEnv": {
+    "DISPLAY": "${localEnv:DISPLAY}",
+    "QT_X11_NO_MITSHM": "1",
+    "ROS_DISTRO": "jazzy",
+    "ROS_DOMAIN_ID": "0",
+    "COLCON_HOME": "/workspaces/kumi_stack/.colcon",
+    "PYTHONUNBUFFERED": "1",
+    "POETRY_VIRTUALENVS_IN_PROJECT": "true",
+    "NVIDIA_VISIBLE_DEVICES": "all",
+    "NVIDIA_DRIVER_CAPABILITIES": "compute,graphics,utility,video,display"
+  },
+  // Allow container user to talk to the host X server
+  "initializeCommand": "xhost +local:docker 2>/dev/null || true",
+  // Only bootstrap when the install overlay is missing
+  "postCreateCommand": "bash -c 'if [ ! -f /workspaces/kumi_stack/install/setup.bash ]; then echo \"==> First run: bootstrap workspace\"; bash .devcontainer/setup.sh; else echo \"==> install/ already present; skipping bootstrap\"; fi'",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false,
+      "username": "ubuntu",
+      "uid": "1000",
+      "gid": "1000",
+      "upgradePackages": false
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "ms-iot.vscode-ros",
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "redhat.vscode-xml",
+        "redhat.vscode-yaml",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/workspaces/kumi_stack/.venv/bin/python",
+        "python.terminal.activateEnvironment": false,
+        "python.analysis.extraPaths": [
+          "/workspaces/kumi_stack/install/kumi_description/lib/python3.12/site-packages",
+          "/workspaces/kumi_stack/install/kumi_control/lib/python3.12/site-packages",
+          "/workspaces/kumi_stack/install/kumi_sim/lib/python3.12/site-packages",
+          "/workspaces/kumi_stack/install/kumi_bringup/lib/python3.12/site-packages",
+          "/workspaces/kumi_stack/install/kumi_behavior/lib/python3.12/site-packages",
+          "/workspaces/kumi_stack/install/kumi_perception/lib/python3.12/site-packages"
+        ],
+        "ros.distro": "jazzy",
+        "ros.rosSetupScript": "/opt/ros/jazzy/setup.bash",
+        "C_Cpp.default.compileCommands": "/workspaces/kumi_stack/build/compile_commands.json",
+        "C_Cpp.default.includePath": [
+          "/opt/ros/jazzy/include/**",
+          "/workspaces/kumi_stack/src/**",
+          "/workspaces/kumi_stack/install/*/include/**"
+        ],
+        "cmake.buildDirectory": "/workspaces/kumi_stack/build",
+        "editor.formatOnSave": true,
+        "files.associations": {
+          "*.xacro": "xml",
+          "*.urdf": "xml",
+          "*.sdf": "xml",
+          "*.launch.py": "python"
+        }
+      }
+    }
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/kumi_stack,type=bind,consistency=cached",
+  "workspaceFolder": "/workspaces/kumi_stack",
+  "forwardPorts": [
+    8765
+  ],
+  "portsAttributes": {
+    "8765": {
+      "label": "Foxglove WebSocket",
+      "onAutoForward": "silent"
+    }
+  },
+  "shutdownAction": "stopContainer",
+  "remoteUser": "root"
+}

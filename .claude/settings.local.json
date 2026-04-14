@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /home/andreas/dev_ws/kumi_stack/src -name \"setup.py\" -exec head -30 {} \\\\; -print)",
+      "Bash(grep -r \"python\" /home/andreas/dev_ws/kumi_stack/src/*/setup.py)",
+      "Bash(find /home/andreas/dev_ws/kumi_stack/src -name \"launch\" -type d -exec ls {} \\\\;)",
+      "Bash(apt list:*)",
+      "Bash(chmod +x /home/andreas/dev_ws/kumi_stack/.devcontainer/setup.sh)",
+      "Bash(awk -F, '{for\\(i=1;i<=NF;i++\\) if\\($i+0 > max\\) max=$i+0; print NR\": \"$0}' /workspaces/kumi_stack/src/kumi_control/resource/backflip.csv)",
+      "Bash(awk -F, 'BEGIN{max=-999} {for\\(i=1;i<=NF;i++\\) if\\($i+0 > max\\) max=$i+0} END{print \"max:\", max}' /workspaces/kumi_stack/src/kumi_control/resource/backflip.csv)",
+      "Bash(ls /workspaces/kumi_stack/src/kumi_control/kumi_control/*.py)",
+      "Bash(getent group:*)"
+    ]
+  }
+}
