@@ -12,7 +12,7 @@ class BTNode(Node):
 
         # --- stato interno ---
         self.emergency = False
-        self.walk_enabled = True
+        self.walk_enabled = False
         self.change_gait_request = False
         self.in_base_position = True
         self.current_gait = "walk"
@@ -58,9 +58,15 @@ class BTNode(Node):
         requested_gait = msg.data.strip()
         if not requested_gait:
             return
+<<<<<<< HEAD
 
         self.requested_gait = requested_gait
         self.change_gait_request = requested_gait != self.current_gait
+=======
+        self.requested_gait = requested_gait
+        if requested_gait != self.current_gait:
+            self.change_gait_request = True
+>>>>>>> main
 
     def log_tree_state(self):
         summary = self._format_tree_state()

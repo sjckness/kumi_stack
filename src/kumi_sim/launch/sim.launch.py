@@ -93,6 +93,18 @@ def generate_launch_description():
             name='LD_LIBRARY_PATH',
             value=_clean_ld_library_path()
         ),
+        SetEnvironmentVariable(
+            name='GZ_IP',
+            value='127.0.0.1'
+        ),
+        SetEnvironmentVariable(
+            name='IGN_IP',
+            value='127.0.0.1'
+        ),
+        SetEnvironmentVariable(
+            name='KUMI_GZ_WORLD',
+            value=world
+        ),
     ]
 
     for env_var in [
@@ -129,6 +141,11 @@ def generate_launch_description():
         'worlds',
         world
     ])
+    gui_config = PathJoinSubstitution([
+        FindPackageShare('kumi_sim'),
+        'config',
+        'kumi_gui.config'
+    ])
 
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -147,6 +164,7 @@ def generate_launch_description():
         }.items()
     )
 
+<<<<<<< HEAD
     spawn_despawn_node = Node(
         package='kumi_sim',
         executable='spawn_despawn_node',
@@ -159,6 +177,26 @@ def generate_launch_description():
         }],
         output='screen',
     )
+=======
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(
+                    FindPackageShare('ros_gz_sim').find('ros_gz_sim'),
+                    'launch',
+                    'gz_sim.launch.py'
+                )
+            ),
+            launch_arguments={
+                'gz_args': [
+                    world_file,
+                    TextSubstitution(text='.sdf'),
+                    TextSubstitution(text=' -v 5 -r --gui-config '),
+                    gui_config,
+                ]
+            }.items()
+        )
+    ])
+>>>>>>> main
 
     return LaunchDescription([
         *clean_env_actions,

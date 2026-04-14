@@ -2,11 +2,22 @@
 
 #include <algorithm>
 #include <array>
+<<<<<<< HEAD
 #include <cstdlib>
 #include <filesystem>
 #include <map>
 #include <set>
 #include <string>
+=======
+#include <atomic>
+#include <cstdlib>
+#include <filesystem>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <thread>
+>>>>>>> main
 #include <vector>
 
 #include <QBuffer>
@@ -31,6 +42,13 @@
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
+<<<<<<< HEAD
+=======
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/string.hpp>
+
+>>>>>>> main
 namespace my_gz_gui_plugin
 {
 
@@ -48,14 +66,40 @@ struct MyGuiPlugin::Impl
   std::string topicWalkEnabled{"/kumi_seq_traj_controller/enabled"};
   std::string topicGait{"/kumi_seq_traj_controller/gait"};
 
+<<<<<<< HEAD
   std::map<std::string, gz::transport::Node::Publisher> emergencyPubs;
   std::map<std::string, gz::transport::Node::Publisher> walkEnabledPubs;
   std::map<std::string, gz::transport::Node::Publisher> gaitPubs;
+=======
+  bool rclcppOwned{false};
+  rclcpp::Node::SharedPtr rosNode;
+  std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> rosExecutor;
+  std::thread rosSpinThread;
+
+  std::map<std::string, rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr> emergencyPubs;
+  std::map<std::string, rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr> walkEnabledPubs;
+  std::map<std::string, rclcpp::Publisher<std_msgs::msg::String>::SharedPtr> gaitPubs;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr registerPub;
+  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr unregisterPub;
+>>>>>>> main
 
   QStringList modelList;
   QStringList robotList;
   QStringList spawnableList;
+<<<<<<< HEAD
   QStringList gaitList{"walk", "frontflip", "backwalk", "backflip", "accovacciato"};
+=======
+  QStringList gaitList{
+    "walk",
+    "flip",
+    "flip_sx",
+    "flip_dx",
+    "bflip",
+    "bflip_sx",
+    "bflip_dx",
+    "accovacciato",
+  };
+>>>>>>> main
   std::set<std::string> knownRobotNames{"bruno"};
   QString cameraImageSource;
   std::string currentCameraTopic;
@@ -166,6 +210,23 @@ QString CameraTopicForRobot(const QString &_robotName)
   return "/" + trimmed + "/front_camera/image";
 }
 
+<<<<<<< HEAD
+=======
+std::string DefaultWorldName()
+{
+  const char *world = std::getenv("KUMI_GZ_WORLD");
+  if (world && *world)
+    return world;
+
+  return "my_empty";
+}
+
+std::string WorldTopic(const std::string &_worldName, const std::string &_suffix)
+{
+  return "/world/" + _worldName + "/" + _suffix;
+}
+
+>>>>>>> main
 QString ImageToDataUrl(const gz::msgs::Image &_msg)
 {
   QImage image;
@@ -210,6 +271,7 @@ QString ImageToDataUrl(const gz::msgs::Image &_msg)
   return "data:image/png;base64," + bytes.toBase64();
 }
 
+<<<<<<< HEAD
 bool PublishRosStringTopic(const QString &_topic, const QString &_value)
 {
   if (_topic.trimmed().isEmpty())
@@ -238,22 +300,79 @@ bool PublishRosStringTopic(const QString &_topic, const QString &_value)
   return true;
 }
 
+=======
+>>>>>>> main
 }  // namespace
 
 MyGuiPlugin::MyGuiPlugin()
   : impl(std::make_unique<Impl>())
 {
+<<<<<<< HEAD
 }
 
 MyGuiPlugin::~MyGuiPlugin() = default;
+=======
+  if (!rclcpp::ok())
+  {
+    rclcpp::init(0, nullptr);
+    impl->rclcppOwned = true;
+  }
+  impl->rosNode = std::make_shared<rclcpp::Node>("my_gz_gui_plugin");
+  impl->rosExecutor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+  impl->rosExecutor->add_node(impl->rosNode);
+  impl->rosSpinThread = std::thread(
+    [this]() { impl->rosExecutor->spin(); });
+
+  const auto latched = rclcpp::QoS(1).transient_local().reliable();
+  impl->registerPub = impl->rosNode->create_publisher<std_msgs::msg::String>(
+    "/kumi_sim/register_robot", latched);
+  impl->unregisterPub = impl->rosNode->create_publisher<std_msgs::msg::String>(
+    "/kumi_sim/unregister_robot", latched);
+}
+
+MyGuiPlugin::~MyGuiPlugin()
+{
+  if (impl->rosExecutor)
+    impl->rosExecutor->cancel();
+  if (impl->rosSpinThread.joinable())
+    impl->rosSpinThread.join();
+
+  impl->emergencyPubs.clear();
+  impl->walkEnabledPubs.clear();
+  impl->gaitPubs.clear();
+  impl->registerPub.reset();
+  impl->unregisterPub.reset();
+  impl->rosExecutor.reset();
+  impl->rosNode.reset();
+
+  if (impl->rclcppOwned)
+    rclcpp::shutdown();
+}
+>>>>>>> main
 
 void MyGuiPlugin::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 {
   if (this->title.empty())
     this->title = "Control pannel";
 
+<<<<<<< HEAD
   if (!_pluginElem)
   {
+=======
+  const auto defaultWorld = DefaultWorldName();
+  if (this->impl->topicSpawn == "/world/default/create")
+    this->impl->topicSpawn = WorldTopic(defaultWorld, "create");
+  if (this->impl->topicRemove == "/world/default/remove")
+    this->impl->topicRemove = WorldTopic(defaultWorld, "remove");
+  if (this->impl->topicSetPose == "/world/default/set_pose")
+    this->impl->topicSetPose = WorldTopic(defaultWorld, "set_pose");
+  if (this->impl->topicPhysics == "/world/default/set_physics")
+    this->impl->topicPhysics = WorldTopic(defaultWorld, "set_physics");
+
+  if (!_pluginElem)
+  {
+    this->impl->topicSceneInfo = WorldTopic(defaultWorld, "scene/info");
+>>>>>>> main
     return;
   }
 
@@ -440,47 +559,89 @@ void MyGuiPlugin::OnSelectRobot(const QString &robotName)
 
 void MyGuiPlugin::OnSetEmergency(const QString &robotName, bool active)
 {
+<<<<<<< HEAD
   const auto topic = TopicForRobot(robotName, "kumi_behavior/emergency");
+=======
+  (void)robotName;
+  const auto topic = this->impl->topicEmergency;
+>>>>>>> main
   if (topic.empty())
     return;
 
   auto &pub = this->impl->emergencyPubs[topic];
   if (!pub)
+<<<<<<< HEAD
     pub = this->impl->node.Advertise<gz::msgs::Boolean>(topic);
 
   gz::msgs::Boolean msg;
   msg.set_data(active);
   pub.Publish(msg);
+=======
+    pub = this->impl->rosNode->create_publisher<std_msgs::msg::Bool>(
+      topic, rclcpp::QoS(1).transient_local().reliable());
+
+  std_msgs::msg::Bool msg;
+  msg.data = active;
+  pub->publish(msg);
+>>>>>>> main
 }
 
 void MyGuiPlugin::OnSetWalkEnabled(const QString &robotName, bool enabled)
 {
+<<<<<<< HEAD
   const auto topic = TopicForRobot(robotName, "kumi_seq_traj_controller/enabled");
+=======
+  (void)robotName;
+  const auto topic = this->impl->topicWalkEnabled;
+>>>>>>> main
   if (topic.empty())
     return;
 
   auto &pub = this->impl->walkEnabledPubs[topic];
   if (!pub)
+<<<<<<< HEAD
     pub = this->impl->node.Advertise<gz::msgs::Boolean>(topic);
 
   gz::msgs::Boolean msg;
   msg.set_data(enabled);
   pub.Publish(msg);
+=======
+    pub = this->impl->rosNode->create_publisher<std_msgs::msg::Bool>(
+      topic, rclcpp::QoS(1).transient_local().reliable());
+
+  std_msgs::msg::Bool msg;
+  msg.data = enabled;
+  pub->publish(msg);
+>>>>>>> main
 }
 
 void MyGuiPlugin::OnSetGait(const QString &robotName, const QString &gaitName)
 {
+<<<<<<< HEAD
   const auto topic = TopicForRobot(robotName, "kumi_seq_traj_controller/gait");
+=======
+  (void)robotName;
+  const auto topic = this->impl->topicGait;
+>>>>>>> main
   if (topic.empty())
     return;
 
   auto &pub = this->impl->gaitPubs[topic];
   if (!pub)
+<<<<<<< HEAD
     pub = this->impl->node.Advertise<gz::msgs::StringMsg>(topic);
 
   gz::msgs::StringMsg msg;
   msg.set_data(gaitName.toStdString());
   pub.Publish(msg);
+=======
+    pub = this->impl->rosNode->create_publisher<std_msgs::msg::String>(
+      topic, rclcpp::QoS(1).transient_local().reliable());
+
+  std_msgs::msg::String msg;
+  msg.data = gaitName.toStdString();
+  pub->publish(msg);
+>>>>>>> main
 }
 
 void MyGuiPlugin::OnSetPose(const QString &modelName,
@@ -602,7 +763,15 @@ void MyGuiPlugin::OnSpawnModel(const QString &modelUri,
       return;
     }
 
+<<<<<<< HEAD
     PublishRosStringTopic("/kumi_sim/register_robot", resolvedName);
+=======
+    {
+      std_msgs::msg::String regMsg;
+      regMsg.data = resolvedName.toStdString();
+      this->impl->registerPub->publish(regMsg);
+    }
+>>>>>>> main
     this->impl->knownRobotNames.insert(resolvedName.toStdString());
     this->RefreshModelList();
     return;
@@ -654,7 +823,15 @@ void MyGuiPlugin::OnRemoveModel(const QString &modelName)
     return;
   }
 
+<<<<<<< HEAD
   PublishRosStringTopic("/kumi_sim/unregister_robot", trimmedName);
+=======
+  {
+    std_msgs::msg::String unregMsg;
+    unregMsg.data = trimmedName.toStdString();
+    this->impl->unregisterPub->publish(unregMsg);
+  }
+>>>>>>> main
   this->impl->knownRobotNames.erase(trimmedName.toStdString());
   this->RefreshModelList();
 }

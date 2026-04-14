@@ -213,7 +213,28 @@ def generate_launch_description():
         period=spawn_delay,
         actions=[
             spawn_entity,
+<<<<<<< HEAD
             robot_runtime_launch,
+=======
+            control_launch,
+            gz_bridge,
+        ]
+    )
+
+    bt_tree_node = TimerAction(
+        period=spawn_delay,
+        actions=[
+            Node(
+                package='kumi_behavior',
+                executable='bt_node',
+                parameters=[{'use_sim_time': use_sim_time}],
+                arguments=[
+                    '--ros-args',
+                    '-r', [TextSubstitution(text='__ns:=/'), robot_name],
+                ],
+                output='screen',
+            ),
+>>>>>>> main
         ]
     )
 

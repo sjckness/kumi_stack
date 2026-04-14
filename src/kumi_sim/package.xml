@@ -14,6 +14,7 @@
   <depend>kumi_control</depend>
   <depend>launch</depend>
   <depend>launch_ros</depend>
+  <exec_depend>my_gz_gui_plugin</exec_depend>
   <depend>ros_gz_sim</depend>
   <depend>std_msgs</depend>
   <depend>xacro</depend>
