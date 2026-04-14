@@ -11,10 +11,14 @@ from ament_index_python.packages import get_package_share_directory
 
 
 GAIT_TO_CSV = {
-    'walk': 'demo_flip_500.csv',
-    'flip': 'demo_flip_500.csv',
-    'backflip': 'backflip.csv',
-    'accovacciato': 'accovacciato.csv',
+    'walk': 'flip.csv',
+    'flip': 'flip.csv',
+    'flip_sx': 'flip_sx.csv',
+    'flip_dx': 'flip_dx.csv',
+    'bflip': 'bflip.csv',
+    'bflip_sx': 'bflip_sx.csv',
+    'bflip_dx': 'bflip_dx.csv',
+    'accovacciato': 'rac.csv',
 }
 
 
@@ -22,6 +26,7 @@ class CSVJointTrajectory(Node):
     def __init__(self, csv_path: str | None = None):
         super().__init__('csv_joint_trajectory')
         self.walk_enabled = True
+        self.pending_gait = None
 
         self.declare_parameter(
             'trajectory_topic',
@@ -116,6 +121,8 @@ class CSVJointTrajectory(Node):
             self.get_logger().info(
                 f"Walk controller {state}. Pausing at CSV index {self.index}."
             )
+            if self.pending_gait is not None:
+                self._apply_pending_gait()
 
     def gait_callback(self, msg: String):
         requested_gait = msg.data.strip()
@@ -128,26 +135,52 @@ class CSVJointTrajectory(Node):
             )
             return
 
-        if requested_gait == self.current_gait:
-            return
-
         if not csv_path.exists():
             self.get_logger().warn(f"CSV per gait '{requested_gait}' non trovato: {csv_path}")
             return
 
+        if requested_gait == self.current_gait:
+            if self.pending_gait is not None:
+                self.get_logger().info(
+                    f"Gait pending '{self.pending_gait}' annullato: richiesto di nuovo '{requested_gait}'."
+                )
+                self.pending_gait = None
+            return
+
+        if not self.walk_enabled:
+            self._swap_gait(requested_gait, csv_path)
+            return
+
+        self.pending_gait = requested_gait
+        self.get_logger().info(
+            f"Gait '{requested_gait}' in coda: verrà applicato a fine passo."
+        )
+
+    def _swap_gait(self, gait: str, csv_path):
         self.positions_list = self.load_csv_in_radians(csv_path)
-        self.current_gait = requested_gait
+        self.current_gait = gait
         self.current_csv_path = csv_path
         self.index = 0
+        self.pending_gait = None
         self.get_logger().info(
             f"Gait cambiato in '{self.current_gait}' usando {self.current_csv_path}"
         )
 
+    def _apply_pending_gait(self):
+        gait = self.pending_gait
+        csv_path = self.gait_csv_map.get(gait) if gait else None
+        if gait is None or csv_path is None or not csv_path.exists():
+            self.pending_gait = None
+            return
+        self._swap_gait(gait, csv_path)
+
     def send_next_point(self):
-        # Se siamo alla fine → ricomincia da capo
+        # Se siamo alla fine → applica pending o ricomincia da capo
         if self.index >= len(self.positions_list):
-            #self.get_logger().info("Sequenza completata. Ripartenza da capo.")
-            self.index = 0
+            if self.pending_gait is not None:
+                self._apply_pending_gait()
+            else:
+                self.index = 0
 
         positions = self.positions_list[self.index]
 

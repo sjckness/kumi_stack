@@ -14,8 +14,8 @@ data_files = [
     # meshes (flat)
     (f'share/{package_name}/meshes', glob('meshes/*')),
     
-    # Config files (YAML)
-    (f'share/{package_name}/config', glob('config/*.yaml')),
+    # Config files
+    (f'share/{package_name}/config', glob('config/*.yaml') + glob('config/*.config')),
 
     # Worlds
     (f'share/{package_name}/worlds', glob('worlds/*')),
@@ -49,4 +49,3 @@ setup(
         ],
     },
 )
-

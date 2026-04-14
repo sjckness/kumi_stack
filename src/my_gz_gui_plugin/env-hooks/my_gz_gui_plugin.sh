@@ -1,0 +1,1 @@
+ament_prepend_unique_value GZ_GUI_PLUGIN_PATH "$AMENT_CURRENT_PREFIX/lib"

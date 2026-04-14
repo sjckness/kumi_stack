@@ -12,7 +12,7 @@ class BTNode(Node):
 
         # --- stato interno ---
         self.emergency = False
-        self.walk_enabled = True
+        self.walk_enabled = False
         self.change_gait_request = False
         self.in_base_position = True
         self.current_gait = "walk"
@@ -56,9 +56,11 @@ class BTNode(Node):
 
     def _gait_callback(self, msg: String):
         requested_gait = msg.data.strip()
-        if requested_gait:
-            self.requested_gait = requested_gait
-            self.current_gait = requested_gait
+        if not requested_gait:
+            return
+        self.requested_gait = requested_gait
+        if requested_gait != self.current_gait:
+            self.change_gait_request = True
 
     def log_tree_state(self):
         summary = self._format_tree_state()

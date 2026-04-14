@@ -72,6 +72,18 @@ def generate_launch_description():
             name='LD_LIBRARY_PATH',
             value=_clean_ld_library_path()
         ),
+        SetEnvironmentVariable(
+            name='GZ_IP',
+            value='127.0.0.1'
+        ),
+        SetEnvironmentVariable(
+            name='IGN_IP',
+            value='127.0.0.1'
+        ),
+        SetEnvironmentVariable(
+            name='KUMI_GZ_WORLD',
+            value=world
+        ),
     ]
 
     for env_var in [
@@ -108,6 +120,11 @@ def generate_launch_description():
         'worlds',
         world
     ])
+    gui_config = PathJoinSubstitution([
+        FindPackageShare('kumi_sim'),
+        'config',
+        'kumi_gui.config'
+    ])
 
     gz_sim = GroupAction([
         PushRosNamespace(namespace),
@@ -124,7 +141,8 @@ def generate_launch_description():
                 'gz_args': [
                     world_file,
                     TextSubstitution(text='.sdf'),
-                    TextSubstitution(text=' -v 5 -r')
+                    TextSubstitution(text=' -v 5 -r --gui-config '),
+                    gui_config,
                 ]
             }.items()
         )

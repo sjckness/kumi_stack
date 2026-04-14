@@ -235,8 +235,11 @@ def generate_launch_description():
             Node(
                 package='kumi_behavior',
                 executable='bt_node',
-                namespace=ros_namespace,
                 parameters=[{'use_sim_time': use_sim_time}],
+                arguments=[
+                    '--ros-args',
+                    '-r', [TextSubstitution(text='__ns:=/'), robot_name],
+                ],
                 output='screen',
             ),
         ]

@@ -13,6 +13,7 @@
   <depend>kumi_description</depend>
   <depend>launch</depend>
   <depend>launch_ros</depend>
+  <exec_depend>my_gz_gui_plugin</exec_depend>
   <depend>ros_gz_sim</depend>
 
   <test_depend>ament_copyright</test_depend>

@@ -15,7 +15,7 @@ class KumiControlGui(Node):
         super().__init__('kumi_control_gui')
 
         self.emergency = False
-        self.walk_enabled = True
+        self.walk_enabled = False
         self.selected_gait = 'walk'
 
         self.emergency_pub = self.create_publisher(Bool, '/kumi_behavior/emergency', 10)
@@ -24,7 +24,7 @@ class KumiControlGui(Node):
 
         self.root = tk.Tk()
         self.root.title('Kumi Control')
-        self.root.geometry('320x220')
+        self.root.geometry('520x420')
         self.root.resizable(False, False)
         self.root.protocol('WM_DELETE_WINDOW', self._on_close)
 
