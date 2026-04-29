@@ -1,11 +1,14 @@
 import py_trees
 from std_msgs.msg import Bool
 
+
 class HandleEmergency(py_trees.behaviour.Behaviour):
     def __init__(self, name, node):
         super().__init__(name)
         self.node = node
-        self.walk_enable_pub = node.create_publisher(Bool, 'kumi_seq_traj_controller/enabled', 10)
+        self.walk_enable_pub = node.create_publisher(
+            Bool, "kumi_seq_traj_controller/enabled", 10
+        )
 
     def update(self):
         msg = Bool()
@@ -18,7 +21,9 @@ class ExecuteWalk(py_trees.behaviour.Behaviour):
     def __init__(self, name, node):
         super().__init__(name)
         self.node = node
-        self.walk_enable_pub = node.create_publisher(Bool, 'kumi_seq_traj_controller/enabled', 10)
+        self.walk_enable_pub = node.create_publisher(
+            Bool, "kumi_seq_traj_controller/enabled", 10
+        )
 
     def initialise(self):
         msg = Bool()

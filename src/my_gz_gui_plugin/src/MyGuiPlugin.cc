@@ -60,6 +60,7 @@ struct MyGuiPlugin::Impl
     "flip",
     "flip_sx",
     "flip_dx",
+    "bwalk",
     "bflip",
     "bflip_sx",
     "bflip_dx",

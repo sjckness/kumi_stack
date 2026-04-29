@@ -18,7 +18,7 @@ setup(
         (f'share/{package_name}/config', glob('config/*.yaml')),
 
         # CSV resources
-        (f'share/{package_name}/resource', glob('resource/*.csv')),
+        (f'share/{package_name}/moves', glob('moves/*.csv')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

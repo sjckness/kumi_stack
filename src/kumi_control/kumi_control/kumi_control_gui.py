@@ -18,9 +18,9 @@ class KumiControlGui(Node):
         self.walk_enabled = False
         self.selected_gait = 'walk'
 
-        self.emergency_pub = self.create_publisher(Bool, 'kumi_behavior/emergency', 10)
-        self.enable_pub = self.create_publisher(Bool, 'kumi_seq_traj_controller/enabled', 10)
-        self.gait_pub = self.create_publisher(String, 'kumi_seq_traj_controller/gait', 10)
+        self.emergency_pub = self.create_publisher(Bool, '/kumi_behavior/emergency', 10)
+        self.enable_pub = self.create_publisher(Bool, '/kumi_seq_traj_controller/enabled', 10)
+        self.gait_pub = self.create_publisher(String, '/kumi_seq_traj_controller/gait', 10)
 
         self.root = tk.Tk()
         self.root.title('Kumi Control')

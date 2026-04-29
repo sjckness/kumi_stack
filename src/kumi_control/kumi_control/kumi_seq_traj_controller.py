@@ -3,6 +3,7 @@ import rclpy
 from rclpy.node import Node
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
+from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool, String
 import csv
 import math
@@ -11,81 +12,94 @@ from ament_index_python.packages import get_package_share_directory
 
 
 GAIT_TO_CSV = {
-    'walk': 'flip.csv',
-    'flip': 'flip.csv',
-    'flip_sx': 'flip_sx.csv',
-    'flip_dx': 'flip_dx.csv',
-    'bwalk': 'bflip.csv',
-    'bflip': 'bflip.csv',
-    'bflip_sx': 'bflip_sx.csv',
-    'bflip_dx': 'bflip_dx.csv',
-    'accovacciato': 'rac.csv',
+    "walk": "flip.csv",
+    "flip": "flip.csv",
+    "flip_sx": "flip_sx.csv",
+    "flip_dx": "flip_dx.csv",
+    "bwalk": "bflip.csv",
+    "bflip": "bflip.csv",
+    "bflip_sx": "bflip_sx.csv",
+    "bflip_dx": "bflip_dx.csv",
+    "accovacciato": "rac.csv",
 }
 
 GAIT_EXECUTION_MODE = {
-    'walk': 'loop',
-    'flip': 'single',
-    'flip_sx': 'single',
-    'flip_dx': 'single',
-    'bwalk': 'loop',
-    'bflip': 'single',
-    'bflip_sx': 'single',
-    'bflip_dx': 'single',
-    'accovacciato': 'single',
+    "walk": "loop",
+    "flip": "single",
+    "flip_sx": "single",
+    "flip_dx": "single",
+    "bwalk": "loop",
+    "bflip": "single",
+    "bflip_sx": "single",
+    "bflip_dx": "single",
+    "accovacciato": "single",
 }
 
 
 class CSVJointTrajectory(Node):
     def __init__(self, csv_path: str | None = None):
-        super().__init__('csv_joint_trajectory')
+        super().__init__("csv_joint_trajectory")
         self.walk_enabled = False
         self.pending_gait = None
 
         self.declare_parameter(
-            'trajectory_topic',
-            '/bruno/multi_joint_trajectory_controller/joint_trajectory'
+            "trajectory_topic",
+            "/bruno/multi_joint_trajectory_controller/joint_trajectory",
         )
-        trajectory_topic = str(self.get_parameter('trajectory_topic').value)
+        self.declare_parameter(
+            "enable_topic",
+            "/bruno/kumi_seq_traj_controller/enabled",
+        )
+        self.declare_parameter(
+            "gait_topic",
+            "/bruno/kumi_seq_traj_controller/gait",
+        )
+        self.declare_parameter("use_isaac", False)
+        self.declare_parameter("joint_commands_topic", "/kumi/joint_commands")
 
-        # Publisher
-        self.pub = self.create_publisher(
-            JointTrajectory,
-            trajectory_topic,
-            10
-        )
+        trajectory_topic = str(self.get_parameter("trajectory_topic").value)
+        enable_topic = str(self.get_parameter("enable_topic").value)
+        gait_topic = str(self.get_parameter("gait_topic").value)
+        self.use_isaac = bool(self.get_parameter("use_isaac").value)
+
+        # Publisher — JointState per Isaac, JointTrajectory per Gazebo/ros2_control
+        if self.use_isaac:
+            joint_commands_topic = str(self.get_parameter("joint_commands_topic").value)
+            self.pub = self.create_publisher(JointState, joint_commands_topic, 10)
+            self.get_logger().info(f"Isaac mode: JointState su {joint_commands_topic}")
+        else:
+            self.pub = self.create_publisher(JointTrajectory, trajectory_topic, 10)
         self.enable_sub = self.create_subscription(
-            Bool,
-            'kumi_seq_traj_controller/enabled',
-            self.enable_callback,
-            10
+            Bool, enable_topic, self.enable_callback, 10
         )
         self.gait_sub = self.create_subscription(
-            String,
-            'kumi_seq_traj_controller/gait',
-            self.gait_callback,
-            10
+            String, gait_topic, self.gait_callback, 10
         )
 
         # Joint names
         self.joint_names = [
-            'front_sh', 'front_ank_y', 'front_ank_z',
-            'rear_sh', 'rear_ank_y', 'rear_ank_z'
+            "front_sh",
+            "front_ank_y",
+            "front_ank_z",
+            "rear_sh",
+            "rear_ank_y",
+            "rear_ank_z",
         ]
 
-        self.frequency = 10 #hz
+        self.frequency = 10  # hz
 
-        pkg_share = Path(get_package_share_directory('kumi_control'))
+        pkg_share = Path(get_package_share_directory("kumi_control"))
         self.gait_csv_map = {
-            gait: pkg_share / 'resource' / relative_path
+            gait: pkg_share / "moves" / relative_path
             for gait, relative_path in GAIT_TO_CSV.items()
         }
-        self.current_gait = 'walk'
+        self.current_gait = "walk"
         self.current_mode = GAIT_EXECUTION_MODE[self.current_gait]
         default_csv = self.gait_csv_map[self.current_gait]
 
         # consenti override via parametro ROS o argomento esplicito
-        self.declare_parameter('csv_path', str(default_csv))
-        param_csv = Path(self.get_parameter('csv_path').value)
+        self.declare_parameter("csv_path", str(default_csv))
+        param_csv = Path(self.get_parameter("csv_path").value)
         csv_path = Path(csv_path) if csv_path else param_csv
 
         if not csv_path.exists():
@@ -94,20 +108,24 @@ class CSVJointTrajectory(Node):
         self.positions_list = self.load_csv_in_radians(csv_path)
         self.current_csv_path = csv_path
 
-        #elf.get_logger().info(f"Pubblico traiettorie su: {trajectory_topic}")
+        # elf.get_logger().info(f"Pubblico traiettorie su: {trajectory_topic}")
         self.get_logger().info(f"Gait disponibili: {list(self.gait_csv_map.keys())}")
-        self.get_logger().info(f"Gait iniziale: {self.current_gait} -> {self.current_csv_path}")
+        self.get_logger().info(
+            f"Gait iniziale: {self.current_gait} -> {self.current_csv_path}"
+        )
         self.get_logger().info("Walk controller disabled at startup.")
-        self.get_logger().info(f"Caricate {len(self.positions_list)} pose dal CSV (in radianti).")
+        self.get_logger().info(
+            f"Caricate {len(self.positions_list)} pose dal CSV (in radianti)."
+        )
 
         self.index = 0
 
         # Timer che pubblica solo quando il BT abilita la camminata.
-        self.timer = self.create_timer(1/self.frequency, self.timer_callback)
+        self.timer = self.create_timer(1 / self.frequency, self.timer_callback)
 
     def load_csv_in_radians(self, path):
         positions = []
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             reader = csv.reader(f)
             for row in reader:
                 degrees = [float(v) for v in row]
@@ -126,7 +144,7 @@ class CSVJointTrajectory(Node):
             return
 
         self.walk_enabled = msg.data
-        state = 'enabled' if self.walk_enabled else 'disabled'
+        state = "enabled" if self.walk_enabled else "disabled"
         if self.walk_enabled:
             self.get_logger().info(
                 f"Walk controller {state}. Resuming from CSV index {self.index}."
@@ -150,7 +168,9 @@ class CSVJointTrajectory(Node):
             return
 
         if not csv_path.exists():
-            self.get_logger().warn(f"CSV per gait '{requested_gait}' non trovato: {csv_path}")
+            self.get_logger().warn(
+                f"CSV per gait '{requested_gait}' non trovato: {csv_path}"
+            )
             return
 
         if requested_gait == self.current_gait:
@@ -194,7 +214,7 @@ class CSVJointTrajectory(Node):
         if self.index >= len(self.positions_list):
             if self.pending_gait is not None:
                 self._apply_pending_gait()
-            elif self.current_mode == 'loop':
+            elif self.current_mode == "loop":
                 self.index = 0
             else:
                 self.walk_enabled = False
@@ -206,19 +226,20 @@ class CSVJointTrajectory(Node):
 
         positions = self.positions_list[self.index]
 
-        traj = JointTrajectory()
-        traj.joint_names = self.joint_names
-
-        point = JointTrajectoryPoint()
-        point.positions = positions
-
-        #tempo target per il controller
-        point.time_from_start = Duration(sec=0, nanosec=20_000_000)
-
-        traj.points.append(point)
-
-        self.pub.publish(traj)
-        #self.get_logger().info(f"[{self.index}] inviato punto: {positions}")
+        if self.use_isaac:
+            msg = JointState()
+            msg.header.stamp = self.get_clock().now().to_msg()
+            msg.name = self.joint_names
+            msg.position = positions
+            self.pub.publish(msg)
+        else:
+            traj = JointTrajectory()
+            traj.joint_names = self.joint_names
+            point = JointTrajectoryPoint()
+            point.positions = positions
+            point.time_from_start = Duration(sec=0, nanosec=20_000_000)
+            traj.points.append(point)
+            self.pub.publish(traj)
 
         self.index += 1
 
@@ -233,5 +254,5 @@ def main(args=None):
     rclpy.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

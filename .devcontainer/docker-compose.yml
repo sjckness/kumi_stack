@@ -1,0 +1,34 @@
+services:
+  kumi:
+    image: kumi:dev
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    network_mode: host
+    privileged: true
+    devices:
+      - /dev/dri
+    group_add:
+      - render
+      - video
+    environment:
+      DISPLAY: ${DISPLAY:-}
+      QT_X11_NO_MITSHM: "1"
+      ROS_DISTRO: jazzy
+      ROS_DOMAIN_ID: "0"
+      COLCON_HOME: /workspaces/kumi_stack/.colcon
+      PYTHONUNBUFFERED: "1"
+      POETRY_VIRTUALENVS_IN_PROJECT: "true"
+      RMW_IMPLEMENTATION: rmw_cyclonedds_cpp
+    volumes:
+      - ..:/workspaces/kumi_stack:cached
+      - kumi_build:/workspaces/kumi_stack/build
+      - kumi_install:/workspaces/kumi_stack/install
+      - kumi_log:/workspaces/kumi_stack/log
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    command: sleep infinity
+
+volumes:
+  kumi_build:
+  kumi_install:
+  kumi_log:

@@ -20,19 +20,19 @@ class BTNode(Node):
 
         self.create_subscription(
             Bool,
-            '/kumi_behavior/emergency',
+            'kumi_behavior/emergency',
             self._emergency_callback,
             10
         )
         self.create_subscription(
             Bool,
-            '/kumi_seq_traj_controller/enabled',
+            'kumi_seq_traj_controller/enabled',
             self._walk_enabled_callback,
             10
         )
         self.create_subscription(
             String,
-            '/kumi_seq_traj_controller/gait',
+            'kumi_seq_traj_controller/gait',
             self._gait_callback,
             10
         )

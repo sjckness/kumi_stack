@@ -1,37 +1,8 @@
 {
   "name": "Kumi ROS 2 Jazzy",
-  // Build from the repo Dockerfile; keep image reproducible
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
-  },
-  // Reuse build/install/log artifacts across container rebuilds
-  "mounts": [
-    "source=kumi_build,target=/workspaces/kumi_stack/build,type=volume",
-    "source=kumi_install,target=/workspaces/kumi_stack/install,type=volume",
-    "source=kumi_log,target=/workspaces/kumi_stack/log,type=volume",
-    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind"
-  ],
-  // Host networking + GPU + X11 passthrough for RViz/Gazebo
-  "runArgs": [
-    "--network=host",
-    "--privileged",
-    "--device=/dev/dri",
-    "--group-add=render",
-    "--group-add=video",
-    "--gpus=all"
-  ],
-  "containerEnv": {
-    "DISPLAY": "${localEnv:DISPLAY}",
-    "QT_X11_NO_MITSHM": "1",
-    "ROS_DISTRO": "jazzy",
-    "ROS_DOMAIN_ID": "0",
-    "COLCON_HOME": "/workspaces/kumi_stack/.colcon",
-    "PYTHONUNBUFFERED": "1",
-    "POETRY_VIRTUALENVS_IN_PROJECT": "true",
-    "NVIDIA_VISIBLE_DEVICES": "all",
-    "NVIDIA_DRIVER_CAPABILITIES": "compute,graphics,utility,video,display"
-  },
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "kumi",
+  "workspaceFolder": "/workspaces/kumi_stack",
   // Allow container user to talk to the host X server
   "initializeCommand": "xhost +local:docker 2>/dev/null || true",
   // Keep named volumes writable by the non-root developer user, then bootstrap once.
@@ -88,8 +59,6 @@
       }
     }
   },
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/kumi_stack,type=bind,consistency=cached",
-  "workspaceFolder": "/workspaces/kumi_stack",
   "updateRemoteUserUID": true,
   "forwardPorts": [
     8765
