@@ -24,6 +24,7 @@ def generate_launch_description():
     start_controller_manager = LaunchConfiguration("start_controller_manager")
     namespace = LaunchConfiguration("namespace")
     use_gui = LaunchConfiguration("use_gui")
+    use_keyboard = LaunchConfiguration("use_keyboard")
 
     declare_namespace = DeclareLaunchArgument(
         "namespace", default_value="bruno", description="Namespace"
@@ -89,6 +90,12 @@ def generate_launch_description():
 
     declare_use_gui = DeclareLaunchArgument(
         "use_gui", default_value="false", description="Launch the Tkinter control GUI"
+    )
+
+    declare_use_keyboard = DeclareLaunchArgument(
+        "use_keyboard",
+        default_value="false",
+        description="Launch keyboard input node in an xterm window (requires xterm)",
     )
 
     xacro_file = PathJoinSubstitution(
@@ -201,6 +208,14 @@ def generate_launch_description():
         condition=IfCondition(use_gui),
     )
 
+    keyboard_node = Node(
+        package="kumi_control",
+        executable="kumi_keyboard_node",
+        namespace=PathJoinSubstitution([TextSubstitution(text="/"), namespace]),
+        output="screen",
+        condition=IfCondition(use_keyboard),
+    )
+
     delayed_spawners = TimerAction(
         period=spawner_delay,
         actions=[
@@ -211,6 +226,7 @@ def generate_launch_description():
                     trajectory_controller_spawner,
                     seq_traj_controller,
                     control_gui,
+                    keyboard_node,
                 ],
             ),
         ],
@@ -228,6 +244,7 @@ def generate_launch_description():
             declare_namespace,
             declare_start_controller_manager,
             declare_use_gui,
+            declare_use_keyboard,
             declare_controller_manager_timeout,
             controller_manager,
             delayed_spawners,

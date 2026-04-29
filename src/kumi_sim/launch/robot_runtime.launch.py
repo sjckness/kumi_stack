@@ -17,6 +17,7 @@ def generate_launch_description():
     spawner_delay = LaunchConfiguration('spawner_delay')
     use_gz_bridge = LaunchConfiguration('use_gz_bridge')
     use_control_gui = LaunchConfiguration('use_control_gui')
+    use_keyboard = LaunchConfiguration('use_keyboard')
     use_rviz = LaunchConfiguration('use_rviz')
     use_joint_state_publisher_gui = LaunchConfiguration('use_joint_state_publisher_gui')
     absolute_namespace = PathJoinSubstitution([
@@ -63,6 +64,12 @@ def generate_launch_description():
         'use_control_gui',
         default_value='false',
         description='Launch the standalone control GUI'
+    )
+
+    declare_use_keyboard = DeclareLaunchArgument(
+        'use_keyboard',
+        default_value='false',
+        description='Launch keyboard input node in an xterm window',
     )
 
     declare_use_rviz = DeclareLaunchArgument(
@@ -127,6 +134,7 @@ def generate_launch_description():
             'spawner_delay': spawner_delay,
             'namespace': namespace,
             'use_gui': use_control_gui,
+            'use_keyboard': use_keyboard,
             'controllers_file': controllers_file,
         }.items()
     )
@@ -199,6 +207,7 @@ def generate_launch_description():
         declare_spawner_delay,
         declare_use_gz_bridge,
         declare_use_control_gui,
+        declare_use_keyboard,
         declare_use_rviz,
         declare_use_joint_state_publisher_gui,
         description_launch,

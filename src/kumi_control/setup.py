@@ -36,6 +36,7 @@ setup(
             'PID_effort_controller = kumi_control.PID_effort_controller:main',
             'kumi_control_gui = kumi_control.kumi_control_gui:main',
             'kumi_seq_traj_controller = kumi_control.kumi_seq_traj_controller:main',
+            'kumi_keyboard_node = kumi_control.kumi_keyboard_node:main',
             'kumi_seq_traj_controller_keyboard = kumi_control.kumi_seq_traj_controller_keyboard:main',
             'kumi_trajectory_controller = kumi_control.kumi_trajectory_controller:main',
         ],

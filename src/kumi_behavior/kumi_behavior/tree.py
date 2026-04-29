@@ -8,6 +8,7 @@ from kumi_behavior.behaviors.conditions import (
     IsWalkingEnabled,
 )
 from kumi_behavior.behaviors.gait import ChangeGait, KeepCurrentGait
+from kumi_behavior.behaviors.step_sequence import ExecuteStepSequence, KeyStepTriggered
 
 
 def create_tree(node):
@@ -39,10 +40,17 @@ def create_tree(node):
         ExecuteWalk(name="ExecuteWalk", node=node),
     ])
 
+    keyboard_step = py_trees.composites.Sequence(name="KeyboardStep", memory=True)
+    keyboard_step.add_children([
+        KeyStepTriggered(name="KeyStepTriggered", node=node),
+        ExecuteStepSequence(name="ExecuteStepSequence", node=node),
+    ])
+
     idle = Idle(name="Idle", node=node)
 
     root.add_children([
         emergency,
+        keyboard_step,
         walking,
         idle,
     ])

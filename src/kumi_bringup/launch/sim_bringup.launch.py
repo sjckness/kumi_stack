@@ -22,6 +22,7 @@ def generate_launch_description():
     use_rviz = LaunchConfiguration('use_rviz')
     use_joint_state_publisher_gui = LaunchConfiguration('use_joint_state_publisher_gui')
     use_control_gui = LaunchConfiguration('use_control_gui')
+    use_keyboard = LaunchConfiguration('use_keyboard')
     spawn_delay = LaunchConfiguration('spawn_delay')
     spawner_delay = LaunchConfiguration('spawner_delay')
 
@@ -79,6 +80,12 @@ def generate_launch_description():
         description='Launch the control GUI from kumi_control'
     )
 
+    declare_use_keyboard = DeclareLaunchArgument(
+        'use_keyboard',
+        default_value='false',
+        description='Launch keyboard input node in an xterm window',
+    )
+
     declare_spawn_delay = DeclareLaunchArgument(
         'spawn_delay',
         default_value='8.0',
@@ -122,6 +129,7 @@ def generate_launch_description():
             'spawner_delay': spawner_delay,
             'use_gz_bridge': 'true',
             'use_control_gui': use_control_gui,
+            'use_keyboard': use_keyboard,
             'use_rviz': use_rviz,
             'use_joint_state_publisher_gui': use_joint_state_publisher_gui,
         }.items()
@@ -202,6 +210,7 @@ def generate_launch_description():
         declare_use_rviz,
         declare_use_joint_state_publisher_gui,
         declare_use_control_gui,
+        declare_use_keyboard,
         declare_spawn_delay,
         declare_spawner_delay,
         sim_launch,
