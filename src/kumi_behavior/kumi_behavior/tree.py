@@ -8,6 +8,12 @@ from kumi_behavior.behaviors.conditions import (
     IsWalkingEnabled,
 )
 from kumi_behavior.behaviors.gait import ChangeGait, KeepCurrentGait
+from kumi_behavior.behaviors.manual_walk import (
+    IsManualMode,
+    ManualCommandPublisher,
+    ManualIndexController,
+    ManualTurningController,
+)
 from kumi_behavior.behaviors.step_sequence import ExecuteStepSequence, KeyStepTriggered
 
 
@@ -18,6 +24,20 @@ def create_tree(node):
     emergency.add_children([
         IsEmergency(name="IsEmergency", node=node),
         HandleEmergency(name="HandleEmergency", node=node),
+    ])
+
+    # ManualMode branch — gates on manual_mode flag; re-checks every tick (memory=False)
+    manual_pipeline = py_trees.composites.Sequence(name="ManualPipeline", memory=False)
+    manual_pipeline.add_children([
+        ManualIndexController(name="IndexController", node=node),
+        ManualTurningController(name="TurningController", node=node),
+        ManualCommandPublisher(name="CommandPublisher", node=node),
+    ])
+
+    manual_mode = py_trees.composites.Sequence(name="ManualMode", memory=False)
+    manual_mode.add_children([
+        IsManualMode(name="IsManualMode", node=node),
+        manual_pipeline,
     ])
 
     change_gait = py_trees.composites.Sequence(name="ChangeGait", memory=False)
@@ -50,6 +70,7 @@ def create_tree(node):
 
     root.add_children([
         emergency,
+        manual_mode,
         keyboard_step,
         walking,
         idle,

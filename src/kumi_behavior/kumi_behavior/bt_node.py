@@ -25,6 +25,15 @@ class BTNode(Node):
         self.angle_index = 0
         self.current_joint_positions: dict = {}
 
+        # --- manual walking mode state ---
+        self.manual_mode = False
+        self.manual_current_index = 0
+        self.manual_step_once = False
+        self.manual_continuous = False
+        self.manual_angle = 0.0        # degrees, clamped ±20 by keyboard callback
+        self.manual_modified_rows: list = []
+        self.manual_row_count = 0
+
         # --- joint names (must match trajectory controller) ---
         self.joint_names = [
             "front_sh",
@@ -41,13 +50,11 @@ class BTNode(Node):
             "/bruno/multi_joint_trajectory_controller/joint_trajectory",
         )
         self.declare_parameter("joint_states_topic", "/bruno/joint_states")
-        self.declare_parameter("step_deg", 15.0)
-        self.declare_parameter("rotation_wait_sec", 2.0)
+        self.declare_parameter("step_deg", 1.0)  # degrees per LEFT/RIGHT press
 
         trajectory_topic = str(self.get_parameter("trajectory_topic").value)
         joint_states_topic = str(self.get_parameter("joint_states_topic").value)
         self.step_deg = float(self.get_parameter("step_deg").value)
-        self.rotation_wait_sec = float(self.get_parameter("rotation_wait_sec").value)
 
         # --- publisher for direct trajectory commands (Phase 2 & 3) ---
         self.traj_pub = self.create_publisher(JointTrajectory, trajectory_topic, 10)
@@ -108,11 +115,38 @@ class BTNode(Node):
     # ------------------------------------------------------------------
 
     def _keyboard_callback(self, msg: String):
-        if msg.data == 'UP' and not self.step_triggered:
-            self.step_triggered = True
-            self.get_logger().info(
-                f'Step triggered (UP), angle_index={self.angle_index}'
-            )
+        key = msg.data
+
+        if key == 'M':
+            self.manual_mode = not self.manual_mode
+            if not self.manual_mode:
+                self.manual_continuous = False
+                self.manual_step_once = False
+            mode_str = "MANUAL" if self.manual_mode else "GAIT"
+            self.get_logger().info(f'Mode switched to: {mode_str}')
+            return
+
+        if self.manual_mode:
+            if key == 'UP':
+                self.manual_step_once = True
+            elif key == 'A':
+                self.manual_continuous = not self.manual_continuous
+                self.get_logger().info(f'Manual continuous stepping: {self.manual_continuous}')
+            elif key == 'DOWN':
+                self.manual_continuous = False
+                self.get_logger().info('Manual stepping paused')
+            elif key == 'LEFT':
+                self.manual_angle = max(-20.0, self.manual_angle - 1.0)
+                self.get_logger().info(f'Manual angle: {self.manual_angle:.1f}°')
+            elif key == 'RIGHT':
+                self.manual_angle = min(20.0, self.manual_angle + 1.0)
+                self.get_logger().info(f'Manual angle: {self.manual_angle:.1f}°')
+        else:
+            if key == 'UP' and not self.step_triggered:
+                self.step_triggered = True
+                self.get_logger().info(
+                    f'Step triggered (UP), angle_index={self.angle_index}'
+                )
 
     def _angle_index_callback(self, msg: Int32):
         self.angle_index = msg.data

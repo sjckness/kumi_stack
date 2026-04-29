@@ -41,24 +41,44 @@ def main(args=None):
 
     root = tk.Tk()
     root.title('Kumi Keyboard Control')
-    root.geometry('300x160')
+    root.geometry('300x220')
     root.resizable(False, False)
 
-    tk.Label(root, text='Click here, then use arrow keys', font=('Arial', 11)).pack(pady=12)
+    tk.Label(root, text='Click here, then use arrow keys', font=('Arial', 11)).pack(pady=8)
 
-    angle_var = tk.StringVar(value='angle_index:  0')
+    mode_var = tk.StringVar(value='MODE: GAIT')
+    tk.Label(root, textvariable=mode_var, font=('Arial', 12, 'bold'), fg='blue').pack(pady=2)
+
+    angle_var = tk.StringVar(value='angle:  0°')
     tk.Label(root, textvariable=angle_var, font=('Arial', 14, 'bold')).pack(pady=4)
 
     status_var = tk.StringVar(value='')
     tk.Label(root, textvariable=status_var, font=('Arial', 10), fg='gray').pack(pady=4)
 
+    current_mode = ['GAIT']
+
     def on_key(event):
+        # Mode toggle
+        if event.keysym == 'm':
+            current_mode[0] = 'MANUAL' if current_mode[0] == 'GAIT' else 'GAIT'
+            mode_var.set(f'MODE: {current_mode[0]}')
+            node.publish_key('M')
+            status_var.set('last key: M')
+            return
+
+        # Auto-step toggle
+        if event.keysym == 'a':
+            node.publish_key('A')
+            status_var.set('last key: A (auto-step toggle)')
+            return
+
         key_map = {'Up': 'UP', 'Down': 'DOWN', 'Left': 'LEFT', 'Right': 'RIGHT'}
         key_name = key_map.get(event.keysym)
         if key_name is None:
             return
+
         node.publish_key(key_name)
-        angle_var.set(f'angle_index:  {node.angle_index}')
+        angle_var.set(f'angle:  {node.angle_index}°')
         status_var.set(f'last key: {key_name}')
 
     root.bind('<KeyPress>', on_key)
