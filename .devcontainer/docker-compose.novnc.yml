@@ -1,0 +1,25 @@
+# docker-compose.novnc.yml — opt-in override for Windows / headless users.
+#
+# Usage:
+#   docker compose -f .devcontainer/docker-compose.yml \
+#                  -f .devcontainer/docker-compose.novnc.yml up -d
+#
+# Then open:  http://localhost:6080/vnc.html?autoconnect=true
+#
+# What this override changes vs the base compose file:
+#   - network_mode: bridge  (replaces "host" so that port mapping works)
+#   - DISPLAY=:1            (Xvfb virtual display inside the container)
+#   - port 6080 exposed     (noVNC websocket → browser)
+#   - entrypoint replaced   (starts Xvfb + x11vnc + websockify, then execs CMD)
+#
+# Note: switching from network_mode:host to bridge is required for Docker
+# Desktop (Windows/macOS) port-forwarding to work.  All ROS nodes run inside
+# the single container and communicate over the loopback, so DDS is unaffected.
+services:
+  kumi:
+    network_mode: bridge
+    environment:
+      DISPLAY: ":1"
+    ports:
+      - "6080:6080"
+    entrypoint: ["/bin/bash", "/workspaces/kumi_stack/.devcontainer/entrypoint-novnc.sh"]

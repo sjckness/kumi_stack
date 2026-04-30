@@ -55,4 +55,14 @@ RUN groupadd -f -r render
 # Initialize rosdep (as root; update happens in postCreate as the final user)
 RUN rosdep init || true
 
+# noVNC / virtual-display packages.
+# Installed unconditionally; activated only when the container is started via
+# entrypoint-novnc.sh (opt-in for Windows / headless users).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    xvfb \
+    x11vnc \
+    novnc \
+    websockify \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /workspaces/kumi_stack

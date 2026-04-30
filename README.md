@@ -131,6 +131,43 @@ State is fed into the tree via ROS 2 subscriptions on the `bt_node`:
 - Docker (with Compose)
 - VSCode with the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension *(recommended)*
 
+### Running on Windows
+
+> Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) with the WSL 2 backend enabled.
+
+A noVNC profile is provided so that GUI applications (Gazebo, RViz, the control panel) are accessible through the browser without any X11 server on the host.
+
+1. **Install Docker Desktop** and enable the WSL 2 backend in *Settings → General → Use the WSL 2 based engine*.
+
+2. **Start the container with the noVNC override:**
+
+   ```bash
+   docker compose \
+     -f .devcontainer/docker-compose.yml \
+     -f .devcontainer/docker-compose.novnc.yml \
+     up -d
+   ```
+
+3. **Open your browser** at:
+
+   ```
+   http://localhost:6080/vnc.html?autoconnect=true
+   ```
+
+   The full desktop is shown inside the browser. All GUI applications launched inside the container appear here.
+
+4. **Attach a shell and work normally:**
+
+   ```bash
+   docker exec -it kumi_stack-kumi-1 bash
+   ```
+
+   Everything else (build, launch, ROS commands) is identical to the Linux workflow.
+
+> The noVNC layer uses a virtual framebuffer (Xvfb) inside the container, so no display hardware or X11 forwarding is needed on the host. The existing Linux workflow (`docker-compose.yml` alone, `DISPLAY` from host) is completely unchanged.
+
+---
+
 ### Clone
 
 ```bash
