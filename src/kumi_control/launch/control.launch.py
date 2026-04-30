@@ -197,6 +197,7 @@ def generate_launch_description():
     control_gui = Node(
         package="kumi_control",
         executable="kumi_control_gui",
+        namespace=namespace,
         output="screen",
         condition=IfCondition(use_gui),
     )
