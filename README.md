@@ -103,6 +103,100 @@ The script:
 - installs Python dependencies
 - runs `colcon build --symlink-install`
 
+## Run on Windows (Docker + noVNC)
+
+Step-by-step guide for Windows users who have never used Docker or this project. The container ships a Linux desktop that you open from your normal Windows browser, so you do not need to install ROS, Gazebo, or any Linux tools on Windows.
+
+### 1. Install Docker Desktop
+
+Download Docker Desktop for Windows and run the installer. When it asks, keep the default option to use WSL2.
+
+```
+https://www.docker.com/products/docker-desktop/
+```
+
+![Step 1 – Docker Desktop download page](assets/docker-desktop-download.png)
+
+### 2. Turn on the WSL2 backend
+
+Open Docker Desktop, go to **Settings → General** and make sure **Use the WSL 2 based engine** is checked. Click **Apply & restart**.
+
+![Step 2 – WSL2 backend setting in Docker Desktop](docs/images/windows_setup_02_wsl2_setting.png)
+
+### 3. Open PowerShell and clone the repository
+
+Open Windows PowerShell and run:
+
+```powershell
+git clone <repo-url> kumi_stack
+```
+
+Then move into the folder:
+
+```powershell
+cd kumi_stack
+```
+
+### 4. Build the container
+
+Still in PowerShell, from the repository root:
+
+```powershell
+docker compose -f .devcontainer/docker-compose.yml --profile novnc build
+```
+
+The first build can take several minutes.
+
+### 5. Start the container with the noVNC profile
+
+```powershell
+docker compose -f .devcontainer/docker-compose.yml --profile novnc up
+```
+
+Wait until you see this line in the terminal:
+
+```
+noVNC ready → http://127.0.0.1:6080/vnc.html
+```
+
+### 6. Open the Linux desktop in your browser
+
+Open this address in any browser (Chrome, Edge, Firefox):
+
+```
+http://127.0.0.1:6080/vnc.html
+```
+
+Click **Connect**. A Linux desktop should appear inside the browser tab.
+
+![Step 6 – noVNC desktop opened in the browser](docs/images/windows_setup_06_novnc_desktop.png)
+
+### 7. Open a terminal inside the desktop
+
+Right-click on the desktop and choose **Open Terminal** (or use the terminal icon in the taskbar).
+
+![Step 7 – Terminal opened inside the noVNC desktop](docs/images/windows_setup_07_terminal.png)
+
+### 8. Source ROS inside that terminal
+
+```bash
+source /opt/ros/jazzy/setup.bash
+```
+
+Then source the workspace:
+
+```bash
+source /workspaces/kumi_stack/install/setup.bash
+```
+
+### 9. Launch the project
+
+```bash
+ros2 launch kumi_stack <launch_file>
+```
+
+The Gazebo window and any other GUI tools will open inside the same browser desktop.
+
 ## Build
 
 Every time you open a new terminal:
