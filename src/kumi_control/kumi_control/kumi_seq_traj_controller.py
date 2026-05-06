@@ -44,15 +44,15 @@ class CSVJointTrajectory(Node):
 
         self.declare_parameter(
             "trajectory_topic",
-            "/bruno/multi_joint_trajectory_controller/joint_trajectory",
+            "multi_joint_trajectory_controller/joint_trajectory",
         )
         self.declare_parameter(
             "enable_topic",
-            "/bruno/kumi_seq_traj_controller/enabled",
+            "kumi_seq_traj_controller/enabled",
         )
         self.declare_parameter(
             "gait_topic",
-            "/bruno/kumi_seq_traj_controller/gait",
+            "kumi_seq_traj_controller/gait",
         )
         self.declare_parameter("use_isaac", False)
         self.declare_parameter("joint_commands_topic", "/kumi/joint_commands")

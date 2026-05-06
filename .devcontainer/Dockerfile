@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-jazzy-robot-state-publisher \
     ros-jazzy-xacro \
     ros-jazzy-rviz2 \
+    ros-jazzy-foxglove-bridge \
     ros-jazzy-rmw-fastrtps-cpp \
     libgl1 \
     libglx-mesa0 \

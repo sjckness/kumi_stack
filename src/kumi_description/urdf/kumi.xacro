@@ -1,17 +1,463 @@
-<?xml version="1.0" ?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="kumi">
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kumi">
 
+    <!-- ========================================================== -->
+    <!-- Args                                                         -->
+    <!-- ========================================================== -->
     <xacro:arg name="pkg_share" default="$(find kumi_description)" />
     <xacro:arg name="robot_name" default="bruno" />
     <xacro:arg name="ros_namespace" default="kumi" />
     <xacro:arg name="enable_sensors" default="true" />
     <xacro:arg name="use_sim" default="false" />
-    <xacro:arg name="control_config" default="$(find kumi_control)/config/trajectory_control_config.yaml" />
+    <xacro:arg name="control_config"
+        default="$(find kumi_control)/config/trajectory_control_config.yaml" />
 
-    <xacro:property name="pkg_share" value="$(arg pkg_share)"/>
+    <!-- ========================================================== -->
+    <!-- Properties                                                   -->
+    <!-- ========================================================== -->
+    <xacro:property name="pkg_share" value="$(arg pkg_share)" />
+    <xacro:property name="mesh_dir" value="${pkg_share}/meshes" />
 
-    <xacro:include filename="${pkg_share}/urdf/macros.xacro" />
-    <xacro:include filename="${pkg_share}/urdf/core.xacro" />
-    <xacro:include filename="${pkg_share}/urdf/sensors.xacro" />
-    <xacro:include filename="${pkg_share}/urdf/gazebo_plugins.xacro" />
+    <xacro:property name="ang_low_lim" value="0.85" />
+    <xacro:property name="ang_up_lim" value="4" />
+    <xacro:property name="thikness" value="0.15" />
+    <xacro:property name="lenght" value="0.18" />
+    <xacro:property name="leg_len" value="0.11" />
+    <xacro:property name="foot_len" value="0.5" />
+    <xacro:property name="toll" value="0.005" />
+    <xacro:property name="mass" value="0.3" />
+    <xacro:property name="joint_friction" value="0.2" />
+    <xacro:property name="foot_contact_friction" value="2.0" />
+    <xacro:property name="mesh_scale" value="0.001 0.001 0.001" />
+    <xacro:property name="body_mesh" value="${mesh_dir}/body_v5.STL" />
+    <xacro:property name="leg_mesh" value="${mesh_dir}/leg_v2.stl" />
+    <xacro:property name="foot_mesh" value="${mesh_dir}/piedino_v3.STL" />
+    <xacro:property name="realsense_mesh" value="${mesh_dir}/realsense.stl" />
+
+    <!-- ========================================================== -->
+    <!-- Materials                                                    -->
+    <!-- ========================================================== -->
+    <material name="black">
+        <color rgba="0.9 0.9 0.9 1.0" />
+    </material>
+    <material name="gray">
+        <color rgba="0 0 0 0.8" />
+    </material>
+    <material name="green">
+        <color rgba="0 1 0 0.8" />
+    </material>
+    <material name="red">
+        <color rgba="1 0 0 0.8" />
+    </material>
+    <material name="orange">
+        <color rgba="0.8 0.4 0.0 1.0" />
+    </material>
+    <material name="purple">
+        <color rgba="0.5 0.0 0.8 1.0" />
+    </material>
+
+    <!-- ========================================================== -->
+    <!-- Core: body, legs, feet, realsense (large green camera)       -->
+    <!-- ========================================================== -->
+    <link name="body">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="${body_mesh}" scale="${mesh_scale}" />
+            </geometry>
+            <material name="gray" />
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="${body_mesh}" scale="${mesh_scale}" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="0.15" />
+            <inertia ixx="0.000226" ixy="0.0" ixz="0.0" iyy="0.000755" iyz="0.0" izz="0.000971" />
+        </inertial>
+    </link>
+
+    <joint name="front_sh" type="revolute">
+        <origin xyz="${-lenght/2} -0.006 0" rpy="0 0 0" />
+        <parent link="body" />
+        <child link="front_leg" />
+        <axis xyz="0 -1 0" />
+        <limit lower="${-2*pi}" upper="${2*pi}" velocity="5" effort="1000" />
+        <dynamics damping="0.5" friction="${joint_friction}" />
+    </joint>
+
+    <link name="front_leg">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 ${-pi/2} 0" />
+            <geometry>
+                <mesh filename="${leg_mesh}" scale="${mesh_scale}" />
+            </geometry>
+            <material name="gray" />
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 ${-pi/2} 0" />
+            <geometry>
+                <mesh filename="${leg_mesh}" scale="${mesh_scale}" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 ${-pi/2} 0" />
+            <mass value="0.3" />
+            <inertia ixx="0.000023773" ixy="0.0" ixz="0.0" iyy="0.000513246" iyz="0.0"
+                izz="0.000524232" />
+        </inertial>
+    </link>
+
+    <joint name="realsense_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="front_leg" />
+        <child link="realsense" />
+    </joint>
+
+    <link name="realsense">
+        <visual>
+            <origin xyz="-0.025 0 -0.057" rpy="${pi/2} 0 0" />
+            <geometry>
+                <box size="0.03 0.03 0.06" />
+            </geometry>
+            <material name="green" />
+        </visual>
+        <collision>
+            <origin xyz="-0.025 0 -0.057" rpy="${pi/2} 0 0" />
+            <geometry>
+                <box size="0.03 0.03 0.06" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="-0.025 0 -0.057" rpy="${pi/2} 0 0" />
+            <mass value="0.005" />
+            <inertia ixx="0.000091" ixy="0.0" ixz="0.0" iyy="0.000165" iyz="0.0" izz="0.000091" />
+        </inertial>
+    </link>
+
+    <joint name="front_ank_y" type="revolute">
+        <origin xyz="0 0 ${-leg_len}" rpy="0 0 0" />
+        <parent link="front_leg" />
+        <child link="front_foot_dummy" />
+        <axis xyz="0 -1 0" />
+        <limit lower="${-2*pi}" upper="${2*pi}" velocity="5" effort="1000" />
+        <dynamics damping="0.1" friction="${joint_friction}" />
+    </joint>
+
+    <link name="front_foot_dummy">
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="0.001" />
+            <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5" />
+        </inertial>
+    </link>
+
+    <joint name="front_ank_z" type="revolute">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="front_foot_dummy" />
+        <child link="front_foot" />
+        <axis xyz="0 0 1" />
+        <limit lower="${-0.1*pi}" upper="${0.1*pi}" velocity="5" effort="1000" />
+        <dynamics damping="0.1" friction="${joint_friction}" />
+    </joint>
+
+    <link name="front_foot">
+        <visual>
+            <origin xyz="0 -0.007 0" rpy="${pi/2} 0 ${-pi/2}" />
+            <geometry>
+                <mesh filename="${foot_mesh}" scale="${mesh_scale}" />
+            </geometry>
+            <material name="green" />
+        </visual>
+        <collision name="frontFootCollision">
+            <origin xyz="0 0 0" rpy="${pi/2} 0 ${-pi/2}" />
+            <geometry>
+                <mesh filename="${foot_mesh}" scale="${mesh_scale}" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="${pi/2} 0 ${-pi/2}" />
+            <mass value="0.15" />
+            <inertia ixx="0.000091" ixy="0.0" ixz="0.0" iyy="0.000165" iyz="0.0" izz="0.000091" />
+        </inertial>
+    </link>
+
+    <gazebo reference="front_foot">
+        <mu1>${foot_contact_friction}</mu1>
+        <mu2>${foot_contact_friction}</mu2>
+    </gazebo>
+
+    <joint name="rear_sh" type="revolute">
+        <origin xyz="${lenght/2} 0.006 0" rpy="0 0 0" />
+        <parent link="body" />
+        <child link="rear_leg" />
+        <axis xyz="0 1 0" />
+        <limit lower="${-2*pi}" upper="${2*pi}" velocity="5" effort="1000" />
+        <dynamics damping="0.5" friction="${joint_friction}" />
+    </joint>
+
+    <link name="rear_leg">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi}" />
+            <geometry>
+                <mesh filename="${leg_mesh}" scale="${mesh_scale}" />
+            </geometry>
+            <material name="gray" />
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi}" />
+            <geometry>
+                <mesh filename="${leg_mesh}" scale="${mesh_scale}" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi}" />
+            <mass value="0.3" />
+            <inertia ixx="0.000023773" ixy="0.0" ixz="0.0" iyy="0.000513246" iyz="0.0"
+                izz="0.000524232" />
+        </inertial>
+    </link>
+
+    <joint name="rear_ank_y" type="revolute">
+        <origin xyz="0 0 ${-leg_len}" rpy="0 0 0" />
+        <parent link="rear_leg" />
+        <child link="rear_foot_dummy" />
+        <axis xyz="0 1 0" />
+        <limit lower="${-2*pi}" upper="${2*pi}" velocity="5" effort="1000" />
+        <dynamics damping="0.1" friction="${joint_friction}" />
+    </joint>
+
+    <link name="rear_foot_dummy">
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="0.001" />
+            <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5" />
+        </inertial>
+    </link>
+
+    <joint name="rear_ank_z" type="revolute">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="rear_foot_dummy" />
+        <child link="rear_foot" />
+        <axis xyz="0 0 1" />
+        <limit lower="${-0.1*pi}" upper="${0.1*pi}" velocity="5" effort="1000" />
+        <dynamics damping="0.1" friction="${joint_friction}" />
+    </joint>
+
+    <link name="rear_foot">
+        <visual>
+            <origin xyz="0 0.007 0" rpy="${pi/2} 0 ${pi/2}" />
+            <geometry>
+                <mesh filename="${foot_mesh}" scale="${mesh_scale}" />
+            </geometry>
+            <material name="red" />
+        </visual>
+        <collision name="rearFootCollision">
+            <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}" />
+            <geometry>
+                <mesh filename="${foot_mesh}" scale="${mesh_scale}" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}" />
+            <mass value="0.15" />
+            <inertia ixx="0.000091" ixy="0.0" ixz="0.0" iyy="0.000165" iyz="0.0" izz="0.000091" />
+        </inertial>
+    </link>
+
+    <gazebo reference="rear_foot">
+        <mu1>${foot_contact_friction}</mu1>
+        <mu2>${foot_contact_friction}</mu2>
+    </gazebo>
+
+    <!-- ========================================================== -->
+    <!-- Sensors: 8 corner cameras (4 depth on top, 4 RGB below)      -->
+    <!-- ========================================================== -->
+    <xacro:if value="$(arg enable_sensors)">
+
+        <xacro:macro name="corner_rgb_cam" params="name x y z yaw pos">
+            <link name="${name}">
+                <visual>
+                    <origin xyz="0 0 0" rpy="0 0 0" />
+                    <geometry>
+                        <box size="0.012 0.012 0.012" />
+                    </geometry>
+                    <material name="purple" />
+                </visual>
+                <collision>
+                    <origin xyz="0 0 0" rpy="0 0 0" />
+                    <geometry>
+                        <box size="0.012 0.012 0.012" />
+                    </geometry>
+                </collision>
+                <inertial>
+                    <origin xyz="0 0 0" rpy="0 0 0" />
+                    <mass value="0.005" />
+                    <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+                </inertial>
+            </link>
+
+            <joint name="${name}_joint" type="fixed">
+                <parent link="body" />
+                <child link="${name}" />
+                <origin xyz="${x} ${y} ${z}" rpy="0 0 ${yaw}" />
+            </joint>
+
+            <gazebo reference="${name}">
+                <sensor name="${name}" type="camera">
+                    <always_on>true</always_on>
+                    <visualize>true</visualize>
+                    <update_rate>30</update_rate>
+                    <topic>$(arg ros_namespace)/camera/${pos}/rgb/image_raw</topic>
+                    <camera_info_topic>$(arg ros_namespace)/camera/${pos}/rgb/camera_info</camera_info_topic>
+                    <gz_frame_id>${name}</gz_frame_id>
+                    <camera>
+                        <horizontal_fov>1.3962634</horizontal_fov>
+                        <image>
+                            <width>640</width>
+                            <height>480</height>
+                            <format>R8G8B8</format>
+                        </image>
+                        <clip>
+                            <near>0.05</near>
+                            <far>50.0</far>
+                        </clip>
+                    </camera>
+                </sensor>
+            </gazebo>
+        </xacro:macro>
+
+        <xacro:macro name="corner_depth_cam" params="name x y z yaw pos">
+            <link name="${name}">
+                <visual>
+                    <origin xyz="0 0 0" rpy="0 0 0" />
+                    <geometry>
+                        <box size="0.012 0.012 0.012" />
+                    </geometry>
+                    <material name="orange" />
+                </visual>
+                <collision>
+                    <origin xyz="0 0 0" rpy="0 0 0" />
+                    <geometry>
+                        <box size="0.012 0.012 0.012" />
+                    </geometry>
+                </collision>
+                <inertial>
+                    <origin xyz="0 0 0" rpy="0 0 0" />
+                    <mass value="0.005" />
+                    <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+                </inertial>
+            </link>
+
+            <joint name="${name}_joint" type="fixed">
+                <parent link="body" />
+                <child link="${name}" />
+                <origin xyz="${x} ${y} ${z}" rpy="0 0 ${yaw}" />
+            </joint>
+
+            <gazebo reference="${name}">
+                <sensor name="${name}" type="depth_camera">
+                    <always_on>true</always_on>
+                    <visualize>true</visualize>
+                    <update_rate>20</update_rate>
+                    <topic>$(arg ros_namespace)/camera/${pos}/depth/image_raw</topic>
+                    <camera_info_topic>$(arg ros_namespace)/camera/${pos}/depth/camera_info</camera_info_topic>
+                    <gz_frame_id>${name}</gz_frame_id>
+                    <camera>
+                        <horizontal_fov>1.22173</horizontal_fov>
+                        <image>
+                            <width>640</width>
+                            <height>480</height>
+                            <format>R_FLOAT32</format>
+                        </image>
+                        <clip>
+                            <near>0.10</near>
+                            <far>10.0</far>
+                        </clip>
+                    </camera>
+                </sensor>
+            </gazebo>
+        </xacro:macro>
+
+        <xacro:property name="cam_x" value="0.095" />
+        <xacro:property name="cam_y" value="0.04" />
+        <xacro:property name="cam_z_depth" value="0.01" />
+        <xacro:property name="cam_z_rgb" value="-0.01" />
+
+        <xacro:corner_depth_cam name="depth_cam_fl" x="${-cam_x}" y="${ -cam_y}" z="${cam_z_depth}"
+            yaw="${-pi/4}" pos="front_left" />
+        <xacro:corner_rgb_cam name="rgb_cam_fl" x="${-cam_x}" y="${ -cam_y}" z="${cam_z_rgb}"
+            yaw="${-pi/4}" pos="front_left" />
+
+        <xacro:corner_depth_cam name="depth_cam_fr" x="${-cam_x}" y="${cam_y}" z="${cam_z_depth}"
+            yaw="${pi/4}" pos="front_right" />
+        <xacro:corner_rgb_cam name="rgb_cam_fr" x="${-cam_x}" y="${cam_y}" z="${cam_z_rgb}"
+            yaw="${pi/4}" pos="front_right" />
+
+        <xacro:corner_depth_cam name="depth_cam_rl" x="${ cam_x}" y="${ cam_y}" z="${cam_z_depth}"
+            yaw="${3*pi/4}" pos="rear_left" />
+        <xacro:corner_rgb_cam name="rgb_cam_rl" x="${ cam_x}" y="${ cam_y}" z="${cam_z_rgb}"
+            yaw="${3*pi/4}" pos="rear_left" />
+
+        <xacro:corner_depth_cam name="depth_cam_rr" x="${ cam_x}" y="${-cam_y}" z="${cam_z_depth}"
+            yaw="${-3*pi/4}" pos="rear_right" />
+        <xacro:corner_rgb_cam name="rgb_cam_rr" x="${ cam_x}" y="${-cam_y}" z="${cam_z_rgb}"
+            yaw="${-3*pi/4}" pos="rear_right" />
+
+    </xacro:if>
+
+    <!-- ========================================================== -->
+    <!-- Gazebo ros2_control plugins                                  -->
+    <!-- ========================================================== -->
+    <xacro:if value="$(arg use_sim)">
+        <ros2_control name="KumiHardware" type="system">
+            <hardware>
+                <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+            </hardware>
+            <joint name="front_sh">
+                <command_interface name="position" />
+                <state_interface name="position" />
+                <state_interface name="velocity" />
+            </joint>
+            <joint name="front_ank_y">
+                <command_interface name="position" />
+                <state_interface name="position" />
+                <state_interface name="velocity" />
+            </joint>
+            <joint name="front_ank_z">
+                <command_interface name="position" />
+                <state_interface name="position" />
+                <state_interface name="velocity" />
+            </joint>
+            <joint name="rear_sh">
+                <command_interface name="position" />
+                <state_interface name="position" />
+                <state_interface name="velocity" />
+            </joint>
+            <joint name="rear_ank_y">
+                <command_interface name="position" />
+                <state_interface name="position" />
+                <state_interface name="velocity" />
+            </joint>
+            <joint name="rear_ank_z">
+                <command_interface name="position" />
+                <state_interface name="position" />
+                <state_interface name="velocity" />
+            </joint>
+        </ros2_control>
+
+        <gazebo>
+            <plugin filename="gz_ros2_control-system"
+                name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+                <ros>
+                    <namespace>$(arg ros_namespace)</namespace>
+                </ros>
+                <parameters>$(arg control_config)</parameters>
+            </plugin>
+        </gazebo>
+    </xacro:if>
+
 </robot>

@@ -16,7 +16,13 @@
       "Bash(dpkg -l ros-jazzy-rmw-cyclonedds-cpp)",
       "Bash(dpkg -l ros-jazzy-fastrtps)",
       "Bash(dpkg -l ros-jazzy-rmw-fastrtps-cpp)",
-      "Bash(docker volume *)"
+      "Bash(docker volume *)",
+      "Bash(docker rm *)",
+      "Bash(docker rmi *)",
+      "Bash(docker buildx *)",
+      "Bash(xargs ls *)",
+      "Bash(python3 -c \"import matplotlib; print\\(matplotlib.__version__\\)\")",
+      "Bash(python3 -c \"import matplotlib.patches; print\\('ok'\\)\")"
     ]
   }
 }

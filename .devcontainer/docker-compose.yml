@@ -26,7 +26,11 @@ services:
       - kumi_install:/workspaces/kumi_stack/install
       - kumi_log:/workspaces/kumi_stack/log
       - /tmp/.X11-unix:/tmp/.X11-unix
-    command: sleep infinity
+    command: >-
+      bash -c "source /opt/ros/jazzy/setup.bash &&
+      ros2 run foxglove_bridge foxglove_bridge
+      --ros-args -p port:=8765 -p address:=0.0.0.0 &
+      sleep infinity"
 
 volumes:
   kumi_build:
