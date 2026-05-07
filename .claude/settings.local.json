@@ -22,7 +22,11 @@
       "Bash(docker buildx *)",
       "Bash(xargs ls *)",
       "Bash(python3 -c \"import matplotlib; print\\(matplotlib.__version__\\)\")",
-      "Bash(python3 -c \"import matplotlib.patches; print\\('ok'\\)\")"
+      "Bash(python3 -c \"import matplotlib.patches; print\\('ok'\\)\")",
+      "Bash(colcon build *)",
+      "Bash(git -C /workspaces/kumi_stack status README.md)",
+      "Bash(git -C /workspaces/kumi_stack ls-files --error-unmatch README.md)",
+      "Bash(lsattr /workspaces/kumi_stack/README.md)"
     ]
   }
 }

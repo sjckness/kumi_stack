@@ -27,7 +27,7 @@ def generate_launch_description():
     use_keyboard = LaunchConfiguration("use_keyboard")
 
     declare_namespace = DeclareLaunchArgument(
-        "namespace", default_value="bruno", description="Namespace"
+        "namespace", default_value="kumi", description="Namespace"
     )
 
     declare_controller_manager_name = DeclareLaunchArgument(
@@ -69,7 +69,7 @@ def generate_launch_description():
     declare_use_sim = DeclareLaunchArgument(
         "use_sim",
         default_value="true",
-        description="Generate robot for simulation (needed for Gazebo plugins)",
+        description="Generate robot for simulation (enables simulator hardware interfaces in URDF)",
     )
 
     declare_enable_sensors = DeclareLaunchArgument(
