@@ -1,23 +1,25 @@
 # kumi_stack
-![Kumi robot](assets/kumi.png)
+
+![Kumi robot](assets/kumi_&_spot.jpg)
 
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04-E95420?)
 ![ROS](https://img.shields.io/badge/ROS-2_Jazzy-22314E?logo=ros)
-![Gazebo](https://img.shields.io/badge/Gazebo-Harmonic-6C3AB2?logo=gazebo)
+![Isaac Sim](https://img.shields.io/badge/Isaac_Sim-4.x-76B900?logo=nvidia)
 
-ROS 2 workspace for the `kumi` robot, including robot description, control, Gazebo simulation, behavior tree, and full bringup.
+ROS 2 workspace for the `kumi` robot — robot description, controllers, behavior tree, and Isaac Sim integration.
 
 ## Contents
 
 - [Package Overview](#package-overview)
+- [Architecture](#architecture)
 - [Behavior Tree](#behavior-tree)
 - [Installation](#installation)
 - [Build](#build)
+- [Isaac Sim Integration](#isaac-sim-integration)
 - [Launch](#launch)
 - [Movement Modes](#movement-modes)
-- [Sensors](#sensors)
-- [Gazebo Interface](#gazebo-interface)
 - [Useful Commands](#useful-commands)
+- [Windows](#windows)
 
 ---
 
@@ -25,63 +27,72 @@ ROS 2 workspace for the `kumi` robot, including robot description, control, Gaze
 
 ### `kumi_description`
 
-Contains the robot model and all related resources:
-- URDF / Xacro
-- meshes
-- sensors
-- Gazebo / ros2_control plugins
+Robot model and all related resources:
+- URDF / Xacro description
+- Meshes
+- Camera link definitions (8 corner cameras: 4 RGB + 4 depth)
 
 Xacro structure:
-- [kumi.xacro](src/kumi_description/urdf/kumi.xacro)
-- [macros.xacro](src/kumi_description/urdf/macros.xacro)
-- [core.xacro](src/kumi_description/urdf/core.xacro)
-- [sensors.xacro](src/kumi_description/urdf/sensors.xacro)
-- [gazebo_plugins.xacro](src/kumi_description/urdf/gazebo_plugins.xacro)
+- [kumi.xacro](src/kumi_description/urdf/kumi.xacro) — main entry point
+- [macros.xacro](src/kumi_description/urdf/macros.xacro) — shared macros and materials
+- [core.xacro](src/kumi_description/urdf/core.xacro) — body, joints, feet
+- [sensors.xacro](src/kumi_description/urdf/sensors.xacro) — camera link macros
 
 ### `kumi_control`
 
-Handles the control layer:
-- controller configuration and manager launch
-- `kumi_seq_traj_controller` — Python node that reads joint trajectories from CSV files and publishes them to the active controller; supports both Gazebo (`JointTrajectory`) and Isaac Sim (`JointState`)
+Control layer:
+- `kumi_seq_traj_controller` — reads joint trajectories from CSV files and publishes them to Isaac Sim as `sensor_msgs/JointState` on `/kumi/joint_commands`
 - `kumi_control_gui` — lightweight Tkinter interface to manage the robot's movement mode, emergency state, and active gait
-
-Configured controllers:
-- `joint_state_broadcaster`
-- `multi_joint_trajectory_controller`
-
-### `kumi_sim`
-
-Provides simulation support:
-- Gazebo launch files
-- world SDF files
-- Gazebo resources and robot-spawning utilities
-
-Available worlds:
-- `my_empty`
-- `stairs`
 
 ### `kumi_bringup`
 
-Top-level bringup package for launching the full simulation stack:
-- Gazebo world
-- robot description and spawning
-- controllers
-- Gazebo/ROS bridge for clock and camera topics
+Top-level launch package. Entry point for the Isaac Sim workflow:
+- `isaac_bringup.launch.py` — starts `robot_state_publisher`, the trajectory controller, and the control GUI
 
 ### `kumi_behavior`
 
-Implements the robot's decision logic as a **py_trees behavior tree** (see [Behavior Tree](#behavior-tree)):
+Robot decision logic implemented as a **py_trees behavior tree** (see [Behavior Tree](#behavior-tree)):
 - `bt_node.py` — ROS 2 node that owns the tree, subscribes to state topics, and ticks the tree at 10 Hz
-- `tree.py` — tree factory function
+- `tree.py` — tree factory
 - `behaviors/` — individual condition and action nodes
-
-### `my_gz_gui_plugin`
-
-A custom C++/QML plugin that is embedded directly in the Gazebo GUI sidebar. It acts as the main in-simulation operator interface, providing robot selection, emergency control, walk/gait commands, spawn/despawn tools, and a live front-camera preview. Built with `gz-gui8` and `gz-transport13`.
 
 ### `kumi_perception`
 
 Placeholder package for perception. Minimal at the moment.
+
+---
+
+## Architecture
+
+All ROS 2 topics live under the `/kumi` namespace. The ROS 2 side of this repository is responsible for the robot description, the TF tree, and the motion commands. Isaac Sim is responsible for physics, sensors, and joint state feedback.
+
+```
+┌──────────────────────────────┐        ┌────────────────────────────┐
+│   ROS 2 (this repository)    │        │       Isaac Sim container  │
+│                              │        │                            │
+│  robot_state_publisher       │◄───────│  /kumi/joint_states        │
+│    └─ publishes /kumi/       │        │                            │
+│       robot_description      │        │                            │
+│    └─ publishes /tf          │        │                            │
+│                              │────────►  /kumi/joint_commands      │
+│  kumi_seq_traj_controller    │        │                            │
+│    └─ reads CSV gaits        │        │                            │
+│    └─ publishes JointState   │        │                            │
+│                              │        │                            │
+│  kumi_control_gui            │        │                            │
+│    └─ enable / gait / e-stop │        │                            │
+└──────────────────────────────┘        └────────────────────────────┘
+```
+
+| Topic | Direction | Type | Description |
+|---|---|---|---|
+| `/kumi/robot_description` | ROS 2 → Isaac | `std_msgs/String` | URDF string (latched) |
+| `/kumi/joint_states` | Isaac → ROS 2 | `sensor_msgs/JointState` | current joint positions |
+| `/kumi/joint_commands` | ROS 2 → Isaac | `sensor_msgs/JointState` | target joint positions |
+| `/kumi/kumi_seq_traj_controller/enabled` | GUI → controller | `std_msgs/Bool` | walk enable/disable |
+| `/kumi/kumi_seq_traj_controller/gait` | GUI → controller | `std_msgs/String` | active gait name |
+| `/kumi/kumi_behavior/emergency` | GUI → behavior | `std_msgs/Bool` | emergency stop flag |
+| `/tf`, `/tf_static` | ROS 2 → global | `tf2_msgs/TFMessage` | robot TF tree |
 
 ---
 
@@ -118,9 +129,9 @@ State is fed into the tree via ROS 2 subscriptions on the `bt_node`:
 
 | Topic | Type | Description |
 |---|---|---|
-| `kumi_behavior/emergency` | `std_msgs/Bool` | emergency flag |
-| `kumi_seq_traj_controller/enabled` | `std_msgs/Bool` | walk enable/disable feedback |
-| `kumi_seq_traj_controller/gait` | `std_msgs/String` | requested gait name |
+| `/kumi/kumi_behavior/emergency` | `std_msgs/Bool` | emergency flag |
+| `/kumi/kumi_seq_traj_controller/enabled` | `std_msgs/Bool` | walk enable/disable feedback |
+| `/kumi/kumi_seq_traj_controller/gait` | `std_msgs/String` | requested gait name |
 
 ---
 
@@ -177,100 +188,6 @@ VSCode builds the image on the first run and then attaches to the container with
 
 ---
 
-## Run on Windows (Docker + noVNC)
-
-Step-by-step guide for Windows users who have never used Docker or this project. The container ships a Linux desktop that you open from your normal Windows browser, so you do not need to install ROS, Gazebo, or any Linux tools on Windows.
-
-### 1. Install Docker Desktop
-
-Download Docker Desktop for Windows and run the installer. When it asks, keep the default option to use WSL2.
-
-```
-https://www.docker.com/products/docker-desktop/
-```
-
-![Step 1 – Docker Desktop download page](assets/docker-desktop-download.png)
-
-### 2. Turn on the WSL2 backend
-
-Open Docker Desktop, go to **Settings → General** and make sure **Use the WSL 2 based engine** is checked. Click **Apply & restart**.
-
-![Step 2 – WSL2 backend setting in Docker Desktop](docs/images/windows_setup_02_wsl2_setting.png)
-
-### 3. Open PowerShell and clone the repository
-
-Open Windows PowerShell and run:
-
-```powershell
-git clone <repo-url> kumi_stack
-```
-
-Then move into the folder:
-
-```powershell
-cd kumi_stack
-```
-
-### 4. Build the container
-
-Still in PowerShell, from the repository root:
-
-```powershell
-docker compose -f .devcontainer/docker-compose.yml --profile novnc build
-```
-
-The first build can take several minutes.
-
-### 5. Start the container with the noVNC profile
-
-```powershell
-docker compose -f .devcontainer/docker-compose.yml --profile novnc up
-```
-
-Wait until you see this line in the terminal:
-
-```
-noVNC ready → http://127.0.0.1:6080/vnc.html
-```
-
-### 6. Open the Linux desktop in your browser
-
-Open this address in any browser (Chrome, Edge, Firefox):
-
-```
-http://127.0.0.1:6080/vnc.html
-```
-
-Click **Connect**. A Linux desktop should appear inside the browser tab.
-
-![Step 6 – noVNC desktop opened in the browser](docs/images/windows_setup_06_novnc_desktop.png)
-
-### 7. Open a terminal inside the desktop
-
-Right-click on the desktop and choose **Open Terminal** (or use the terminal icon in the taskbar).
-
-![Step 7 – Terminal opened inside the noVNC desktop](docs/images/windows_setup_07_terminal.png)
-
-### 8. Source ROS inside that terminal
-
-```bash
-source /opt/ros/jazzy/setup.bash
-```
-
-Then source the workspace:
-
-```bash
-source /workspaces/kumi_stack/install/setup.bash
-```
-
-### 9. Launch the project
-
-```bash
-ros2 launch kumi_stack <launch_file>
-```
-
-The Gazebo window and any other GUI tools will open inside the same browser desktop.
-
 ## Build
 
 Every time you open a new terminal inside the container:
@@ -291,58 +208,102 @@ source install/setup.bash
 Build a single package:
 
 ```bash
-colcon build --packages-select kumi_behavior --symlink-install
+colcon build --packages-select kumi_bringup --symlink-install
 ```
+
+---
+
+## Isaac Sim Integration
+
+Isaac Sim runs in a **separate container** from the ROS 2 workspace. The two sides communicate exclusively via ROS 2 topics under the `/kumi` namespace.
+
+### Workflow overview
+
+```
+1. Start the Isaac Sim container
+        │
+        ▼
+2. Inside Isaac, launch the simulator-side scripts
+   (these are NOT part of this repository)
+        │
+        ▼
+3. Isaac Sim starts publishing /kumi/joint_states
+   and listening on /kumi/joint_commands
+        │
+        ▼
+4. In this ROS 2 container, run the Isaac bringup
+   → ros2 launch kumi_bringup isaac_bringup.launch.py
+```
+
+### What the Isaac-side scripts do
+
+The simulator-side scripts (maintained in a separate repository) are responsible for:
+- Loading the robot model inside Isaac Sim
+- Starting the ROS 2 bridge
+- Publishing `/kumi/joint_states` at runtime
+- Subscribing to `/kumi/joint_commands` and applying them to the simulated joints
+
+This repository does **not** include any Isaac Sim scripts or bridge nodes.
+
+### What this repository does
+
+Once the ROS 2 bringup is launched, this side handles:
+- Generating the robot URDF via xacro and publishing it on `/kumi/robot_description`
+- Running `robot_state_publisher` to compute the TF tree from incoming joint states
+- Running `kumi_seq_traj_controller` to read CSV gaits and publish joint commands
+- Running `kumi_control_gui` to manage walk enable, emergency stop, and gait selection
+
+### Isaac Sim running
+
+![Kumi robot](assets/isaac-sim.png)
 
 ---
 
 ## Launch
 
-### Full simulation stack
+### Isaac Sim bringup
+
+Make sure the Isaac Sim container is already running and publishing joint states before launching this.
 
 ```bash
-ros2 launch kumi_bringup sim_bringup.launch.py
+ros2 launch kumi_bringup isaac_bringup.launch.py
 ```
-
-Available parameters:
 
 | Parameter | Default | Description |
 |---|---|---|
-| `world` | `my_empty` | World name (`my_empty`, `stairs`) |
-| `robot_name` | `bruno` | Name of the spawned robot |
-| `ros_namespace` | `bruno` | ROS namespace for controllers and nodes |
-| `robot_xacro` | `kumi.xacro` | Xacro file to use |
-| `enable_sensors` | `true` | Enable front camera and depth sensor |
+| `use_gui` | `true` | Launch the `kumi_control_gui` window |
 | `use_rviz` | `false` | Launch RViz |
-| `use_joint_state_publisher_gui` | `false` | Launch joint state publisher GUI |
-| `use_control_gui` | `false` | Launch the `kumi_control_gui` window |
-| `spawn_delay` | `8.0` | Seconds to wait before spawning the robot |
-| `spawner_delay` | `10.0` | Seconds to wait before activating controllers |
 
-Example:
+Example — launch with RViz and without the GUI:
 
 ```bash
-ros2 launch kumi_bringup sim_bringup.launch.py world:=my_empty enable_sensors:=true use_control_gui:=true
+ros2 launch kumi_bringup isaac_bringup.launch.py use_rviz:=true use_gui:=false
+```
+
+### Robot description only (standalone)
+
+To inspect the URDF or run the joint state publisher GUI without Isaac:
+
+```bash
+ros2 launch kumi_description description.launch.py
 ```
 
 ---
 
 ## Movement Modes
 
-Kumi supports two movement modes that are selected via the [control GUI](#control-interface).
+Kumi supports two movement modes selected via the [control GUI](#control-interface).
 
 ### Manual mode
 
-In manual mode the robot walks continuously in a loop using a repeating step trajectory. Movement is controlled via keyboard:
+The robot walks continuously in a loop using a repeating step trajectory:
 
-- **Forward / backward** — step in the selected direction
-- **Turning** — the robot can rotate at each step; the turning angle is configurable and adjustable at runtime via the control interface
-
-This mode uses the `walk` (forward) and `bwalk` (backward) gaits, both executed in loop.
+- **Forward** — `walk` gait (loop)
+- **Backward** — `bwalk` gait (loop)
 
 ### Gait mode
 
-In gait mode the robot executes a single predefined movement sequence. Available gaits:
+The robot executes a single predefined movement sequence and then stops.
 
 | Gait | Direction | Type |
 |---|---|---|
@@ -352,104 +313,109 @@ In gait mode the robot executes a single predefined movement sequence. Available
 | `bflip` | backward | single backflip |
 | `bflip_sx` | backward-left | single backflip |
 | `bflip_dx` | backward-right | single backflip |
+| `accovacciato` | — | crouch (single) |
 
-The six directional gaits form a grid similar to chess piece movement: forward/backward along the axis, or diagonally left/right. Each gait plays once and then the controller stops, returning the robot to its base position ready for the next command.
+Each gait plays once and the controller stops, returning the robot to its base position ready for the next command.
 
 ### Control interface
 
-A small control window manages the active mode and displays the current state:
+A small control window manages the active mode and displays the current state. It is launched automatically by `isaac_bringup.launch.py` (`use_gui:=true`), or standalone:
 
 ```bash
 ros2 run kumi_control kumi_control_gui
 ```
 
-Or launch it together with the simulation using `use_control_gui:=true`.
-
 The interface shows:
 - **Emergency** toggle — immediately stops all motion
 - **Walk enabled** checkbox — activates or deactivates the trajectory publisher
-- **Gait** selector — switches the active gait (mode); the turning angle for manual walking is also reflected here
-
----
-
-## Sensors
-
-The robot currently exposes:
-- front RGB camera
-- front depth camera
-
-Gazebo topics bridged to ROS:
-- `/front_camera/image`
-- `/front_camera/camera_info`
-- `/front_depth/image`
-- `/front_depth/camera_info`
-
-Disable sensors at launch:
-
-```bash
-ros2 launch kumi_bringup sim_bringup.launch.py enable_sensors:=false
-```
-
----
-
-## Gazebo Interface
-
-When you launch the full simulation, Gazebo loads the custom `my_gz_gui_plugin` panel directly inside the GUI. The panel is docked in the Gazebo sidebar and acts as the main operator interface for spawned robots.
-
-![Gazebo GUI](assets/gui_v4.png)
-
-Main GUI features:
-- `Robot` selector to choose which spawned robot the panel is controlling
-- `EMERGENCY ON/OFF` toggle to publish the emergency state for the selected robot
-- `Walk` checkbox to enable or disable walking commands
-- `Gait` dropdown to switch the active gait
-- `Spawn / Despawn` tools to create or remove models from the current world
-- `update entities` button to refresh the robot and model lists
-- front camera preview for the selected robot, with a toggle to show or hide the panel
-
-How it works:
-- the GUI discovers robots in the Gazebo world and updates its dropdowns automatically
-- when a robot is selected, the plugin publishes commands on Gazebo transport topics derived from that robot name
-- the camera panel subscribes to `/<robot_name>/front_camera/image` and shows the live image when sensors are enabled
-- spawn and remove actions use the world transport services configured in the world SDF
-
-Typical workflow:
-1. Launch the simulation: `ros2 launch kumi_bringup sim_bringup.launch.py`
-2. Wait for Gazebo to open and for the `Kumi Control` panel to appear.
-3. Select a robot in the `Robot` dropdown.
-4. Use `EMERGENCY`, `Walk`, and `Gait` to control the robot.
-5. Use the lower section to spawn additional entities or remove existing ones.
-6. Open the camera preview to monitor the front camera.
-
-Notes:
-- the GUI is part of the Gazebo world configuration and appears automatically in worlds that include the plugin
-- the front camera preview only works when the robot is launched with `enable_sensors:=true`
-- if the robot list looks outdated, press `update entities`
+- **Gait** selector — switches the active gait
 
 ---
 
 ## Useful Commands
 
-List active controllers:
+Verify the robot description is published and non-empty:
 
 ```bash
-ros2 control list_controllers
+ros2 topic echo /kumi/robot_description --once
 ```
 
-Check the trajectory topic:
+Monitor joint states arriving from Isaac Sim:
 
 ```bash
-ros2 topic echo /bruno/multi_joint_trajectory_controller/joint_trajectory
+ros2 topic echo /kumi/joint_states
 ```
 
-Monitor behavior tree state:
+Monitor joint commands sent to Isaac Sim:
 
 ```bash
-ros2 topic echo /rosout  # bt_node logs tree state every second
+ros2 topic echo /kumi/joint_commands
 ```
 
-Kill Gazebo:
+List all active topics under the kumi namespace:
 
 ```bash
-pkill -9 -f 'gz-sim|gz sim|gz'
+ros2 topic list | grep kumi
+```
+
+Inspect the TF tree:
+
+```bash
+ros2 run tf2_tools view_frames
+```
+
+---
+
+## Windows
+
+The development container supports a noVNC workflow for Windows users — a Linux desktop accessible from a browser without installing any Linux tools locally.
+
+> **Note — Isaac Sim support on Windows:** The Isaac Sim container workflow requires features (GPU passthrough, network bridging between containers) that are **not properly supported** in the current setup on Windows. The Windows/noVNC path gives you access to the ROS 2 environment only. **Linux is the recommended platform** for the full Isaac Sim integration.
+
+### 1. Install Docker Desktop
+
+```
+https://www.docker.com/products/docker-desktop/
+```
+
+![Step 1 – Docker Desktop download page](assets/docker-desktop-download.png)
+
+### 2. Enable the WSL2 backend
+
+Open Docker Desktop → **Settings → General** → enable **Use the WSL 2 based engine** → **Apply & restart**.
+
+### 3. Clone the repository
+
+```powershell
+git clone <repo-url> kumi_stack
+cd kumi_stack
+```
+
+### 4. Build the container
+
+```powershell
+docker compose -f .devcontainer/docker-compose.yml --profile novnc build
+```
+
+### 5. Start with the noVNC profile
+
+```powershell
+docker compose -f .devcontainer/docker-compose.yml --profile novnc up
+```
+
+Wait for:
+
+```
+noVNC ready → http://127.0.0.1:6080/vnc.html
+```
+
+### 6. Open the Linux desktop
+
+Navigate to `http://127.0.0.1:6080/vnc.html` in any browser and click **Connect**.
+
+### 7. Source and build inside the desktop terminal
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source /workspaces/kumi_stack/install/setup.bash
 ```
