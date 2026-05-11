@@ -4,7 +4,7 @@
 # the container down so docker can restart it cleanly.
 set -uo pipefail
 
-XVFB_PID=""
+XVFB_PID="" 
 X11VNC_PID=""
 WEBSOCKIFY_PID=""
 
@@ -71,9 +71,7 @@ echo "[novnc] x11vnc ready on 127.0.0.1:5900 (pid $X11VNC_PID)"
 # --listen-host 0.0.0.0 forces an IPv4 wildcard bind. Browsers must connect
 # via http://127.0.0.1:6080/... — using "localhost" can resolve to ::1 on
 # some hosts and would fail the websocket handshake.
-websockify --web /usr/share/novnc \
-           --listen-host 0.0.0.0 \
-           6080 127.0.0.1:5900 &
+websockify --web=/usr/share/novnc/ 6080 localhost:5900
 WEBSOCKIFY_PID=$!
 wait_for_port 127.0.0.1 6080 "$WEBSOCKIFY_PID" "websockify"
 echo "[novnc] websockify ready on 0.0.0.0:6080 (pid $WEBSOCKIFY_PID)"

@@ -105,6 +105,10 @@ def generate_launch_description():
             name='KUMI_GZ_WORLD',
             value=world
         ),
+        SetEnvironmentVariable(
+            name='DISPLAY',
+            value=os.environ.get('DISPLAY', ':1')
+        ),
     ]
 
     for env_var in [

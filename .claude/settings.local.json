@@ -22,7 +22,10 @@
       "Bash(docker buildx *)",
       "Bash(xargs ls *)",
       "Bash(python3 -c \"import matplotlib; print\\(matplotlib.__version__\\)\")",
-      "Bash(python3 -c \"import matplotlib.patches; print\\('ok'\\)\")"
+      "Bash(python3 -c \"import matplotlib.patches; print\\('ok'\\)\")",
+      "Read(//mnt/**)",
+      "Read(//tmp/.X11-unix/**)",
+      "Bash(colcon build *)"
     ]
   }
 }
