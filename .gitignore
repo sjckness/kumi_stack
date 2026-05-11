@@ -1,7 +1,11 @@
 # ROS2 colcon
-build/ 
-install/ 
+build/
+install/
 log/
 .venv/
+
+# Python bytecode
+__pycache__/
+*.pyc
 
 /scripts/update_deps_and_push.sh
