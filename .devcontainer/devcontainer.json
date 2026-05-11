@@ -3,8 +3,6 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "kumi",
   "workspaceFolder": "/workspaces/kumi_stack",
-  // Allow container user to talk to the host X server
-  "initializeCommand": "xhost +local:docker 2>/dev/null || true",
   // Keep named volumes writable by the non-root developer user, then bootstrap once.
   "postCreateCommand": "bash -lc 'sudo mkdir -p /workspaces/kumi_stack/build /workspaces/kumi_stack/install /workspaces/kumi_stack/log /workspaces/kumi_stack/.colcon; sudo chown -R ubuntu:ubuntu /workspaces/kumi_stack/build /workspaces/kumi_stack/install /workspaces/kumi_stack/log /workspaces/kumi_stack/.colcon; if [ ! -f /workspaces/kumi_stack/install/setup.bash ]; then echo \"==> First run: bootstrap workspace\"; bash .devcontainer/setup.sh; else echo \"==> install/ already present; skipping bootstrap\"; fi'",
   "features": {
@@ -61,9 +59,14 @@
   },
   "updateRemoteUserUID": true,
   "forwardPorts": [
+    6080,
     8765
   ],
   "portsAttributes": {
+    "6080": {
+      "label": "noVNC desktop",
+      "onAutoForward": "openBrowser"
+    },
     "8765": {
       "label": "Foxglove WebSocket",
       "onAutoForward": "silent"

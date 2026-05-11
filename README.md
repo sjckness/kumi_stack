@@ -1,11 +1,12 @@
 # kumi_stack
 ![Kumi robot](assets/kumi.png)
 
-![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04-E95420?)
+![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows)
+![Docker](https://img.shields.io/badge/Docker_Desktop-WSL2-2496ED?logo=docker)
 ![ROS](https://img.shields.io/badge/ROS-2_Jazzy-22314E?logo=ros)
 ![Gazebo](https://img.shields.io/badge/Gazebo-Harmonic-6C3AB2?logo=gazebo)
 
-ROS 2 workspace for the `kumi` robot, including robot description, control, Gazebo simulation, behavior tree, and full bringup.
+ROS 2 workspace for the `kumi` robot — runs on **Windows** via Docker Desktop with a noVNC browser desktop. Includes robot description, control, Gazebo simulation, behavior tree, and full bringup.
 
 ## Contents
 
@@ -128,52 +129,11 @@ State is fed into the tree via ROS 2 subscriptions on the `bt_node`:
 
 ### Requirements
 
-- Docker (with Compose)
-- VSCode with the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension *(recommended)*
+- **Windows 10/11**
+- Docker Desktop with the WSL2 backend
+- *(Optional)* VSCode with the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
 
-### Clone
-
-```bash
-git clone <repo-url> ~/dev_ws/kumi_stack
-```
-
-### Open the development container
-
-The workspace runs inside a Docker container defined in [.devcontainer/](.devcontainer/).  
-Choose one of the two methods below.
-
-#### From terminal
-
-```bash
-cd ~/dev_ws/kumi_stack
-
-# allow the container to use the host display
-xhost +local:docker
-
-# start the container
-docker compose -f .devcontainer/docker-compose.yml up -d
-
-# attach a shell
-docker exec -it kumi_stack-kumi-1 bash
-```
-
-Inside the container the first-run bootstrap script runs automatically (`setup.sh`), which installs system dependencies, creates the `.venv`, and builds the workspace. On subsequent runs the existing `install/` is reused.
-
-To source the workspace in any new shell inside the container:
-
-```bash
-source /opt/ros/jazzy/setup.bash
-source /workspaces/kumi_stack/.venv/bin/activate
-source /workspaces/kumi_stack/install/setup.bash
-```
-
-#### From VSCode with Dev Containers extension
-
-1. Install the **Dev Containers** extension (`ms-vscode-remote.remote-containers`).
-2. Open the `kumi_stack` folder in VSCode.
-3. When the notification appears, click **Reopen in Container** — or open the Command Palette (`Ctrl+Shift+P`) and run **Dev Containers: Reopen in Container**.
-
-VSCode builds the image on the first run and then attaches to the container with all extensions, Python paths, and ROS settings pre-configured. Subsequent opens skip the build step and reuse the existing container.
+The container ships a Linux desktop served over noVNC — no native X server or Linux tools are required on Windows.
 
 ---
 
@@ -216,7 +176,7 @@ cd kumi_stack
 Still in PowerShell, from the repository root:
 
 ```powershell
-docker compose -f .devcontainer/docker-compose.yml --profile novnc build
+docker compose -f .devcontainer/docker-compose.yml build
 ```
 
 The first build can take several minutes.
@@ -224,7 +184,7 @@ The first build can take several minutes.
 ### 5. Start the container with the noVNC profile
 
 ```powershell
-docker compose -f .devcontainer/docker-compose.yml --profile novnc up
+docker compose -f .devcontainer/docker-compose.yml up
 ```
 
 Wait until you see this line in the terminal:
