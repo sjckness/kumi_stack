@@ -3,7 +3,6 @@ import rclpy
 from rclpy.node import Node
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
-from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool, String
 import csv
 import math
@@ -54,21 +53,12 @@ class CSVJointTrajectory(Node):
             "gait_topic",
             "kumi_seq_traj_controller/gait",
         )
-        self.declare_parameter("use_isaac", False)
-        self.declare_parameter("joint_commands_topic", "/kumi/joint_commands")
 
         trajectory_topic = str(self.get_parameter("trajectory_topic").value)
         enable_topic = str(self.get_parameter("enable_topic").value)
         gait_topic = str(self.get_parameter("gait_topic").value)
-        self.use_isaac = bool(self.get_parameter("use_isaac").value)
 
-        # Publisher — JointState per Isaac, JointTrajectory per Gazebo/ros2_control
-        if self.use_isaac:
-            joint_commands_topic = str(self.get_parameter("joint_commands_topic").value)
-            self.pub = self.create_publisher(JointState, joint_commands_topic, 10)
-            self.get_logger().info(f"Isaac mode: JointState su {joint_commands_topic}")
-        else:
-            self.pub = self.create_publisher(JointTrajectory, trajectory_topic, 10)
+        self.pub = self.create_publisher(JointTrajectory, trajectory_topic, 10)
         self.enable_sub = self.create_subscription(
             Bool, enable_topic, self.enable_callback, 10
         )
@@ -226,20 +216,13 @@ class CSVJointTrajectory(Node):
 
         positions = self.positions_list[self.index]
 
-        if self.use_isaac:
-            msg = JointState()
-            msg.header.stamp = self.get_clock().now().to_msg()
-            msg.name = self.joint_names
-            msg.position = positions
-            self.pub.publish(msg)
-        else:
-            traj = JointTrajectory()
-            traj.joint_names = self.joint_names
-            point = JointTrajectoryPoint()
-            point.positions = positions
-            point.time_from_start = Duration(sec=0, nanosec=20_000_000)
-            traj.points.append(point)
-            self.pub.publish(traj)
+        traj = JointTrajectory()
+        traj.joint_names = self.joint_names
+        point = JointTrajectoryPoint()
+        point.positions = positions
+        point.time_from_start = Duration(sec=0, nanosec=20_000_000)
+        traj.points.append(point)
+        self.pub.publish(traj)
 
         self.index += 1
 

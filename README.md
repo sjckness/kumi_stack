@@ -43,7 +43,7 @@ Xacro structure:
 
 Handles the control layer:
 - controller configuration and manager launch
-- `kumi_seq_traj_controller` — Python node that reads joint trajectories from CSV files and publishes them to the active controller; supports both Gazebo (`JointTrajectory`) and Isaac Sim (`JointState`)
+- `kumi_seq_traj_controller` — Python node that reads joint trajectories from CSV files and publishes them to the active Gazebo controller as `JointTrajectory`
 - `kumi_control_gui` — lightweight Tkinter interface to manage the robot's movement mode, emergency state, and active gait
 
 Configured controllers:
