@@ -19,7 +19,6 @@ ROS 2 workspace for the `kumi` robot — robot description, controllers, behavio
 - [Launch](#launch)
 - [Movement Modes](#movement-modes)
 - [Useful Commands](#useful-commands)
-- [Windows](#windows)
 
 ---
 
@@ -362,60 +361,4 @@ Inspect the TF tree:
 
 ```bash
 ros2 run tf2_tools view_frames
-```
-
----
-
-## Windows
-
-The development container supports a noVNC workflow for Windows users — a Linux desktop accessible from a browser without installing any Linux tools locally.
-
-> **Note — Isaac Sim support on Windows:** The Isaac Sim container workflow requires features (GPU passthrough, network bridging between containers) that are **not properly supported** in the current setup on Windows. The Windows/noVNC path gives you access to the ROS 2 environment only. **Linux is the recommended platform** for the full Isaac Sim integration.
-
-### 1. Install Docker Desktop
-
-```
-https://www.docker.com/products/docker-desktop/
-```
-
-![Step 1 – Docker Desktop download page](assets/docker-desktop-download.png)
-
-### 2. Enable the WSL2 backend
-
-Open Docker Desktop → **Settings → General** → enable **Use the WSL 2 based engine** → **Apply & restart**.
-
-### 3. Clone the repository
-
-```powershell
-git clone <repo-url> kumi_stack
-cd kumi_stack
-```
-
-### 4. Build the container
-
-```powershell
-docker compose -f .devcontainer/docker-compose.yml --profile novnc build
-```
-
-### 5. Start with the noVNC profile
-
-```powershell
-docker compose -f .devcontainer/docker-compose.yml --profile novnc up
-```
-
-Wait for:
-
-```
-noVNC ready → http://127.0.0.1:6080/vnc.html
-```
-
-### 6. Open the Linux desktop
-
-Navigate to `http://127.0.0.1:6080/vnc.html` in any browser and click **Connect**.
-
-### 7. Source and build inside the desktop terminal
-
-```bash
-source /opt/ros/jazzy/setup.bash
-source /workspaces/kumi_stack/install/setup.bash
 ```

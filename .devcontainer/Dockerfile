@@ -1,6 +1,8 @@
 FROM osrf/ros:jazzy-desktop
 
-# Install system deps, Gazebo Harmonic (via ros-jazzy-ros-gz) and Python tooling.
+# Install system deps and Python tooling for the Isaac Sim bridge workflow.
+# Isaac Sim itself runs in a separate NVIDIA-provided container; this image
+# only carries the ROS 2 side (robot description, control, BT, GUI).
 # User creation is handled by the devcontainer common-utils feature (devcontainer.json).
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -13,8 +15,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-rosdep \
     python3-vcstool \
     pipx \
-    ros-jazzy-ros-gz \
-    ros-jazzy-gz-ros2-control \
     ros-jazzy-rmw-cyclonedds-cpp \
     ros-jazzy-py-trees \
     ros-jazzy-rclpy \
@@ -22,8 +22,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-jazzy-std-msgs \
     ros-jazzy-sensor-msgs \
     ros-jazzy-trajectory-msgs \
-    ros-jazzy-controller-manager \
-    ros-jazzy-ros2-controllers \
     ros-jazzy-joint-state-publisher-gui \
     ros-jazzy-robot-state-publisher \
     ros-jazzy-xacro \

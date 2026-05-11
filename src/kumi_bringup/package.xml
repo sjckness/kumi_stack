@@ -15,9 +15,6 @@
   <depend>kumi_behavior</depend>
   <depend>kumi_control</depend>
   <depend>kumi_description</depend>
-  <depend>kumi_sim</depend>
-  <depend>ros_gz_bridge</depend>
-  <depend>ros_gz_sim</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
