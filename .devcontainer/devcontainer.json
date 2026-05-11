@@ -35,7 +35,6 @@
         "python.analysis.extraPaths": [
           "/workspaces/kumi_stack/install/kumi_description/lib/python3.12/site-packages",
           "/workspaces/kumi_stack/install/kumi_control/lib/python3.12/site-packages",
-          "/workspaces/kumi_stack/install/kumi_sim/lib/python3.12/site-packages",
           "/workspaces/kumi_stack/install/kumi_bringup/lib/python3.12/site-packages",
           "/workspaces/kumi_stack/install/kumi_behavior/lib/python3.12/site-packages",
           "/workspaces/kumi_stack/install/kumi_perception/lib/python3.12/site-packages"
