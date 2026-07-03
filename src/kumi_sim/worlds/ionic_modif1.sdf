@@ -1,0 +1,438 @@
+<sdf version='1.10'>
+  <world name='ionic_modif1'>
+    <physics name='fast' type='ignored'>
+      <max_step_size>0.0040000000000000001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+    <gui fullscreen='false'>
+      <plugin name='3D View' filename='MinimalScene'>
+        <gz-gui>
+          <title>3D View</title>
+          <property type='bool' key='showTitleBar'>false</property>
+          <property type='string' key='state'>docked</property>
+        </gz-gui>
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <sky/>
+        <camera_clip>
+          <near>0.01</near>
+          <far>500</far>
+        </camera_clip>
+        <camera_pose>-5.4 -1.15 1.75 0.0 0.11 0.73</camera_pose>
+      </plugin>
+      <plugin name='GI' filename='GlobalIlluminationVct'>
+        <gz-gui>
+          <property type='string' key='state'>docked_collapsed</property>
+        </gz-gui>
+        <enabled>true</enabled>
+        <highQuality>true</highQuality>
+        <resolution>64 32 16</resolution>
+        <octantCount>1 1 1</octantCount>
+        <conserveMemory>true</conserveMemory>
+        <thinWallCounter>1.0</thinWallCounter>
+        <anisotropic>true</anisotropic>
+        <bounceCount>9</bounceCount>
+      </plugin>
+      <plugin name='Entity context menu' filename='EntityContextMenuPlugin'>
+        <gz-gui>
+          <property key='state' type='string'>floating</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='showTitleBar' type='bool'>false</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='Scene Manager' filename='GzSceneManager'>
+        <gz-gui>
+          <property key='resizable' type='bool'>false</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='Interactive view control' filename='InteractiveViewControl'>
+        <gz-gui>
+          <property key='resizable' type='bool'>false</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='Camera Tracking' filename='CameraTracking'>
+        <gz-gui>
+          <property key='resizable' type='bool'>false</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='Marker manager' filename='MarkerManager'>
+        <gz-gui>
+          <property key='resizable' type='bool'>false</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='Select Entities' filename='SelectEntities'>
+        <gz-gui>
+          <anchors target='Select entities'>
+            <line own='right' target='right'/>
+            <line own='top' target='top'/>
+          </anchors>
+          <property key='resizable' type='bool'>false</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='Visualization Capabilities' filename='VisualizationCapabilities'>
+        <gz-gui>
+          <property key='resizable' type='bool'>false</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='Spawn Entities' filename='Spawn'>
+        <gz-gui>
+          <anchors target='Select entities'>
+            <line own='right' target='right'/>
+            <line own='top' target='top'/>
+          </anchors>
+          <property key='resizable' type='bool'>false</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='World control' filename='WorldControl'>
+        <gz-gui>
+          <title>World control</title>
+          <property type='bool' key='showTitleBar'>false</property>
+          <property type='bool' key='resizable'>false</property>
+          <property type='double' key='height'>72</property>
+          <property type='double' key='z'>1</property>
+          <property type='string' key='state'>floating</property>
+          <anchors target='3D View'>
+            <line own='left' target='left'/>
+            <line own='bottom' target='bottom'/>
+          </anchors>
+        </gz-gui>
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <use_event>true</use_event>
+      </plugin>
+      <plugin name='World stats' filename='WorldStats'>
+        <gz-gui>
+          <title>World stats</title>
+          <property type='bool' key='showTitleBar'>false</property>
+          <property type='bool' key='resizable'>false</property>
+          <property type='double' key='height'>110</property>
+          <property type='double' key='width'>290</property>
+          <property type='double' key='z'>1</property>
+          <property type='string' key='state'>floating</property>
+          <anchors target='3D View'>
+            <line own='right' target='right'/>
+            <line own='bottom' target='bottom'/>
+          </anchors>
+        </gz-gui>
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+      </plugin>
+      <plugin name='Shapes' filename='Shapes'>
+        <gz-gui>
+          <property key='resizable' type='bool'>false</property>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>0</property>
+          <property key='width' type='double'>250</property>
+          <property key='height' type='double'>50</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#666666</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='Lights' filename='Lights'>
+        <gz-gui>
+          <property key='resizable' type='bool'>false</property>
+          <property key='x' type='double'>250</property>
+          <property key='y' type='double'>0</property>
+          <property key='width' type='double'>150</property>
+          <property key='height' type='double'>50</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#666666</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='Transform control' filename='TransformControl'>
+        <gz-gui>
+          <property key='resizable' type='bool'>false</property>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>50</property>
+          <property key='width' type='double'>250</property>
+          <property key='height' type='double'>50</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#777777</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='Screenshot' filename='Screenshot'>
+        <gz-gui>
+          <property key='resizable' type='bool'>false</property>
+          <property key='x' type='double'>250</property>
+          <property key='y' type='double'>50</property>
+          <property key='width' type='double'>50</property>
+          <property key='height' type='double'>50</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#777777</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='VideoRecorder' filename='VideoRecorder'>
+        <gz-gui>
+          <property key='resizable' type='bool'>false</property>
+          <property key='x' type='double'>300</property>
+          <property key='y' type='double'>50</property>
+          <property key='width' type='double'>50</property>
+          <property key='height' type='double'>50</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#777777</property>
+        </gz-gui>
+        <record_video>
+          <use_sim_time>true</use_sim_time>
+          <lockstep>false</lockstep>
+          <bitrate>4000000</bitrate>
+        </record_video>
+      </plugin>
+      <plugin name='Component inspector' filename='ComponentInspector'>
+        <gz-gui>
+          <property type='string' key='state'>docked_collapsed</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='Entity tree' filename='EntityTree'>
+        <gz-gui>
+          <property type='string' key='state'>docked_collapsed</property>
+        </gz-gui>
+      </plugin>
+      <plugin name='View angle' filename='ViewAngle'>
+        <gz-gui>
+          <property type='string' key='state'>docked_collapsed</property>
+        </gz-gui>
+      </plugin>
+    </gui>
+    <plugin name='gz::sim::systems::Physics' filename='gz-sim-physics-system'/>
+    <plugin name='gz::sim::systems::UserCommands' filename='gz-sim-user-commands-system'/>
+    <plugin name='gz::sim::systems::SceneBroadcaster' filename='gz-sim-scene-broadcaster-system'/>
+    <plugin name='gz::sim::systems::Contact' filename='gz-sim-contact-system'/>
+    <plugin name='gz::sim::systems::Sensors' filename='gz-sim-sensors-system'>
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin name='gz::sim::systems::Imu' filename='gz-sim-imu-system'/>
+    <scene>
+      <ambient>0 0 0 1</ambient>
+      <grid>false</grid>
+      <sky/>
+      <background>0.699999988 0.699999988 0.699999988 1</background>
+      <shadows>true</shadows>
+    </scene>
+    <gravity>0 0 -9.8000000000000007</gravity>
+    <magnetic_field>5.5644999999999998e-06 2.2875799999999999e-05 -4.2388400000000002e-05</magnetic_field>
+    <atmosphere type='adiabatic'/>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/Ionic interior</uri>
+      <name>Interior</name>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/googleresearch/models/steak_set</uri>
+      <name>steak_set</name>
+      <pose>7.3499999999999996 0.050000000000000003 0.86399999999999999 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/googleresearch/models/steak_set</uri>
+      <name>steak_set_2</name>
+      <pose>7.8499999999999996 0.050000000000000003 0.86399999999999999 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/googleresearch/models/steak_set</uri>
+      <name>steak_set_3</name>
+      <pose>8.3499999999999996 0.050000000000000003 0.86399999999999999 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/googleresearch/models/steak_set</uri>
+      <name>steak_set_4</name>
+      <pose>8.8499999999999996 0.050000000000000003 0.86399999999999999 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/googleresearch/models/steak_set</uri>
+      <name>steak_set_5</name>
+      <pose>9.3499999999999996 0.050000000000000003 0.86399999999999999 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/googleresearch/models/steak_set</uri>
+      <name>steak_set_6</name>
+      <pose>7.8499999999999996 0.40000000000000002 0.86399999999999999 0 0 3.1400000000000001</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/googleresearch/models/steak_set</uri>
+      <name>steak_set_7</name>
+      <pose>8.3499999999999996 0.40000000000000002 0.86399999999999999 0 0 3.1400000000000001</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/googleresearch/models/steak_set</uri>
+      <name>steak_set_8</name>
+      <pose>8.8499999999999996 0.40000000000000002 0.86199999999999999 0 0 3.1400000000000001</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/googleresearch/models/steak_set</uri>
+      <name>steak_set_9</name>
+      <pose>9.3500000000000014 0.40000000000000002 0.86199999999999999 0 0 3.1400000000000001</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/Breakfast Menu Original</uri>
+      <name>breakfast_menu</name>
+      <pose>-2.1400000000000379 2.6230000000000073 0.751 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/Breakfast Menu Decomposed</uri>
+      <name>breakfast_menu_decomposed</name>
+      <pose>-1.7299999999999973 2.6230000000000002 0.751 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/Breakfast Menu Convex Hull</uri>
+      <name>breakfast_menu_convex_hull</name>
+      <pose>-1.73 2.8500000000000032 0.751 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/Ionic Mascot</uri>
+      <name>Ionic Mascot</name>
+      <pose>3.6699999999999999 0.34999999999999998 1.1799999999999999 0 0 3.1400000000000001</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Standing person</uri>
+      <name>person_1</name>
+      <pose>-3 1.5 -5.0677623568142315e-08 -2.8144153662348021e-20 3.506114107131294e-18 -8.4722847088187642e-17</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/FemaleVisitor</uri>
+      <name>person_2</name>
+      <pose>-4.5 -0.20000000000000001 -5.1634158346968937e-08 -7.0168088537551102e-08 1.8114485113435749e-08 -5.7496096233273556e-16</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Walking person</uri>
+      <name>person_3</name>
+      <pose>2 0.10000000000000002 0 -6.9938193359187457e-35 9.2005476674598086e-34 1.5700000000000001</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Standing person</uri>
+      <name>person_standing</name>
+      <pose>4.0391000000000004 2.2323600000000003 0.00033599999999999998 7.7000000000000028e-05 -2.3716922523120409e-20 -0.90000000000000024</pose>
+    </include>
+    <light name='spot_grid' type='spot'>
+      <pose>-3 0.5 2.7000000000000002 0 0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <intensity>1</intensity>
+      <direction>0 0 -1</direction>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>1 1 1 1</specular>
+      <attenuation>
+        <range>12</range>
+        <linear>0.29999999999999999</linear>
+        <constant>0.20000000000000001</constant>
+        <quadratic>0</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>2.5</outer_angle>
+        <falloff>1</falloff>
+      </spot>
+    </light>
+    <light name='spot_middle' type='spot'>
+      <pose>4 1.8 2.5 0 0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <intensity>1</intensity>
+      <direction>0 0 -1</direction>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>1 1 1 1</specular>
+      <attenuation>
+        <range>12</range>
+        <linear>0.29999999999999999</linear>
+        <constant>0.20000000000000001</constant>
+        <quadratic>0</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>2.5</outer_angle>
+        <falloff>1</falloff>
+      </spot>
+    </light>
+    <light name='spot_longtable' type='spot'>
+      <pose>9 1 2.75 0 0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <intensity>1</intensity>
+      <direction>0 0 -1</direction>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>1 1 1 1</specular>
+      <attenuation>
+        <range>12</range>
+        <linear>0.29999999999999999</linear>
+        <constant>0.20000000000000001</constant>
+        <quadratic>0</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>2.5</outer_angle>
+        <falloff>1</falloff>
+      </spot>
+    </light>
+    <light name='point_column_01' type='point'>
+      <pose>0 1.75 1.75 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <intensity>1</intensity>
+      <direction>0 0 -1</direction>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>1 1 1 1</specular>
+      <attenuation>
+        <range>20</range>
+        <linear>0.20000000000000001</linear>
+        <constant>0.80000000000000004</constant>
+        <quadratic>0.5</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+    <light name='point_column_02' type='point'>
+      <pose>7.4000000000000004 3.3999999999999999 1.71 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <intensity>1</intensity>
+      <direction>0 0 -1</direction>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>1 1 1 1</specular>
+      <attenuation>
+        <range>20</range>
+        <linear>0.20000000000000001</linear>
+        <constant>0.80000000000000004</constant>
+        <quadratic>0.5</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+  </world>
+</sdf>

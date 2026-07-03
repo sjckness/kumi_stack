@@ -1,0 +1,14 @@
+rrt_planner_node:
+  ros__parameters:
+    costmap_topic: "/map"
+    goal_topic: "/goal_pose"
+    path_topic: "/plan"
+    occupancy_threshold: 50
+    eps: 0.4
+    b_length: 0.3
+    n_samples: 500
+    max_turn_angle_deg: 90.0
+    goal_tolerance: 0.3
+    max_iterations: 300
+    map_frame: "map"
+    robot_frame: "base_link"
