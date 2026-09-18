@@ -40,8 +40,6 @@ class WorldOccupancyGrid:
     Thin wrapper so the planner can query occupancy in world meters,
     mirroring MATLAB's occupancyMap + checkOccupancy.
 
-    binary_grid: 2D numpy array indexed [row][col] i.e. [y][x], 0=free/1=occupied.
-    resolution: meters per cell.
     origin_x, origin_y: world coordinates of grid cell (0, 0).
     """
 
@@ -188,6 +186,7 @@ class RRTPlanner:
             # 9. goal check
             if math.hypot(best_x - goal[0], best_y - goal[1]) < self.goal_tolerance:
                 return self._build_path(nodes, len(nodes) - 1)
+
 
         return None  # no path found within max_iterations
 

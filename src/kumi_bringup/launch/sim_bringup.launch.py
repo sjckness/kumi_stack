@@ -146,6 +146,8 @@ def generate_launch_description():
         "my_empty": {"x": "0.0", "y": "0.0", "z": "0.3", "yaw": "0.0"},
         "piazza": {"x": "0.0", "y": "0.0", "z": "0.3", "yaw": "0.0"},
         "stairs": {"x": "-0.15", "y": "0.0", "z": "0.3", "yaw": "3.141592653589793"},
+        "ionic_modif1": {"x": "0.0", "y": "0.0", "z": "0.3", "yaw": "3.141592653589793"},
+        "simple_world": {"x": "0.0", "y": "0.0", "z": "0.3", "yaw": "3.141592653589793"},
     }
 
     xacro_file = PathJoinSubstitution(

@@ -1,5 +1,5 @@
 """
-Control with teleop, with backflip
+Control with teleop, importing the positions from csv files, and sending them to the trajectory controller.
 """
 
 #!/usr/bin/env python3
@@ -38,21 +38,21 @@ class CSVJointTrajectory(Node):
         # Publisher
         self.pub = self.create_publisher(
             JointTrajectory,
-            '/multi_joint_trajectory_controller/joint_trajectory',
+            '/bruno/multi_joint_trajectory_controller/joint_trajectory',
             10
         )
 
-        pkg_share = Path(get_package_share_directory('kumi'))
+        pkg_share = Path(get_package_share_directory('kumi_control'))
 
         csv_files = {
-            1: pkg_share / 'resource/flip.csv',
-            2: pkg_share / 'resource/bflip.csv',
-            3: pkg_share / 'resource/flip_sx.csv',
-            4: pkg_share / 'resource/flip_dx.csv',
-            5: pkg_share / 'resource/bflip_sx.csv',
-            6: pkg_share / 'resource/bflip_dx.csv',
-            7: pkg_share / 'resource/rac.csv',
-            8: pkg_share / 'resource/extend.csv'
+            1: pkg_share / 'moves/flip.csv',
+            2: pkg_share / 'moves/bflip.csv',
+            3: pkg_share / 'moves/flip_sx.csv',
+            4: pkg_share / 'moves/flip_dx.csv',
+            5: pkg_share / 'moves/bflip_sx.csv',
+            6: pkg_share / 'moves/bflip_dx.csv',
+            7: pkg_share / 'moves/rac.csv',
+            8: pkg_share / 'moves/extend.csv'
         }
         
         controller_config = pkg_share / 'config/trajectory_control_config.yaml'
@@ -209,7 +209,7 @@ class CSVJointTrajectory(Node):
         if movement_id==7:      # if the movement is compactation, possible next manipulations: yaw and expand + reset
             self.get_logger().info("Compactation complete. Z/X: rotate the robot. V: expand.\nPress R to reset. Ctrl+C to exit.")
         else:
-            self.get_logger().info("Sequence finished.\nW/S: straight frontflip/backflip.\nQ/A: sx frontflip/backflip.\nE/D: dx frontflip/backflip.\nC: compact.\nPress R to reset. Ctrl+C to exit.") 
+            self.get_logger().info("Sequence finished.\nW/S: straight frontflip/backflip.\nQ/A: sx frontflip/backflip.\nE/D: dx frontflip/backflip.\nC: compact. \nV: expand. \nPress R to reset. Ctrl+C to exit.") 
 
     def next_pos(self):
         """

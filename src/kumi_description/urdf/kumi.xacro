@@ -160,7 +160,7 @@
         <parent link="front_foot_dummy" />
         <child link="front_foot" />
         <axis xyz="0 0 1" />
-        <limit lower="${-0.1*pi}" upper="${0.1*pi}" velocity="5" effort="1000" />
+        <limit lower="${-2*pi}" upper="${2*pi}" velocity="5" effort="1000" />
         <dynamics damping="0.1" friction="${joint_friction}" />
     </joint>
 
@@ -243,7 +243,7 @@
         <parent link="rear_foot_dummy" />
         <child link="rear_foot" />
         <axis xyz="0 0 1" />
-        <limit lower="${-0.1*pi}" upper="${0.1*pi}" velocity="5" effort="1000" />
+        <limit lower="${-2*pi}" upper="${2*pi}" velocity="5" effort="1000" />
         <dynamics damping="0.1" friction="${joint_friction}" />
     </joint>
 
@@ -387,25 +387,31 @@
         <xacro:property name="cam_z_depth" value="0.01" />
         <xacro:property name="cam_z_rgb" value="-0.01" />
 
-        <xacro:corner_depth_cam name="depth_cam_fl" x="${-cam_x}" y="${ -cam_y}" z="${cam_z_depth}"
-            yaw="${-pi/4}" pos="front_left" />
-        <xacro:corner_rgb_cam name="rgb_cam_fl" x="${-cam_x}" y="${ -cam_y}" z="${cam_z_rgb}"
-            yaw="${-pi/4}" pos="front_left" />
+    
+        <xacro:corner_depth_cam name="depth_cam_fl" x="${-cam_x}" y="${-cam_y}" z="${cam_z_depth}"
+            yaw="${-3*pi/4}" pos="front_left" />
+        <xacro:corner_rgb_cam name="rgb_cam_fl" x="${-cam_x}" y="${-cam_y}" z="${cam_z_rgb}"
+            yaw="${-3*pi/4}" pos="front_left" />
 
         <xacro:corner_depth_cam name="depth_cam_fr" x="${-cam_x}" y="${cam_y}" z="${cam_z_depth}"
-            yaw="${pi/4}" pos="front_right" />
+            yaw="${3*pi/4}" pos="front_right" />
         <xacro:corner_rgb_cam name="rgb_cam_fr" x="${-cam_x}" y="${cam_y}" z="${cam_z_rgb}"
-            yaw="${pi/4}" pos="front_right" />
+            yaw="${3*pi/4}" pos="front_right" />
 
-        <xacro:corner_depth_cam name="depth_cam_rl" x="${ cam_x}" y="${ cam_y}" z="${cam_z_depth}"
-            yaw="${3*pi/4}" pos="rear_left" />
-        <xacro:corner_rgb_cam name="rgb_cam_rl" x="${ cam_x}" y="${ cam_y}" z="${cam_z_rgb}"
-            yaw="${3*pi/4}" pos="rear_left" />
+        <xacro:corner_depth_cam name="depth_cam_ff" x="${-cam_x}" y="0.0" z="${cam_z_depth}"
+            yaw="${pi}" pos="front_forward" />
+        <xacro:corner_rgb_cam name="rgb_cam_ff" x="${-cam_x}" y="0.0" z="${cam_z_rgb}"
+            yaw="${pi}" pos="front_forward" />
 
-        <xacro:corner_depth_cam name="depth_cam_rr" x="${ cam_x}" y="${-cam_y}" z="${cam_z_depth}"
-            yaw="${-3*pi/4}" pos="rear_right" />
-        <xacro:corner_rgb_cam name="rgb_cam_rr" x="${ cam_x}" y="${-cam_y}" z="${cam_z_rgb}"
-            yaw="${-3*pi/4}" pos="rear_right" />
+        <xacro:corner_depth_cam name="depth_cam_rl" x="${cam_x}" y="${-cam_y}" z="${cam_z_depth}"
+            yaw="${-pi/4}" pos="rear_left" />
+        <xacro:corner_rgb_cam name="rgb_cam_rl" x="${cam_x}" y="${-cam_y}" z="${cam_z_rgb}"
+            yaw="${-pi/4}" pos="rear_left" />
+            
+        <xacro:corner_depth_cam name="depth_cam_rr" x="${cam_x}" y="${cam_y}" z="${cam_z_depth}"
+            yaw="${pi/4}" pos="rear_right" />
+        <xacro:corner_rgb_cam name="rgb_cam_rr" x="${cam_x}" y="${cam_y}" z="${cam_z_rgb}"
+            yaw="${pi/4}" pos="rear_right" />
 
     </xacro:if>
 

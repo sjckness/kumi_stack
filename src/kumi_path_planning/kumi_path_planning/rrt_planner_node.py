@@ -28,8 +28,18 @@ from nav_msgs.msg import OccupancyGrid, Path
 from geometry_msgs.msg import PoseStamped
 import tf2_ros
 from tf2_ros import TransformException
+from geometry_msgs.msg import PoseStamped
+#from tf_transformations import euler_from_quaternion
+
+import time
 
 from kumi_path_planning.rrt import RRTPlanner, WorldOccupancyGrid
+
+def quaternion_to_yaw(x, y, z, w):
+    return math.atan2(
+        2.0 * (w * z + x * y),
+        1.0 - 2.0 * (y * y + z * z)
+    )
 
 
 class RRTPlannerNode(RclpyNode):
@@ -40,15 +50,17 @@ class RRTPlannerNode(RclpyNode):
         self.declare_parameter('costmap_topic', '/map')
         self.declare_parameter('goal_topic', '/goal_pose')
         self.declare_parameter('path_topic', '/plan')
-        self.declare_parameter('occupancy_threshold', 50)   # cost >= this => occupied
+        self.declare_parameter('occupancy_threshold', 50)    # cost >= this => occupied
         self.declare_parameter('eps', 0.4)                   # m, target-direction step
         self.declare_parameter('b_length', 0.3)              # m, fixed stride length
-        self.declare_parameter('n_samples', 500)             # heading candidates / iter
+        self.declare_parameter('n_samples', 2000)            # heading candidates / iter
         self.declare_parameter('max_turn_angle_deg', 90.0)   # +/- per step
         self.declare_parameter('goal_tolerance', 0.3)        # m
-        self.declare_parameter('max_iterations', 300)
-        self.declare_parameter('map_frame', 'map')
-        self.declare_parameter('robot_frame', 'base_link')
+        self.declare_parameter('max_iterations', 2000)
+        self.declare_parameter('map_frame', 'body')
+        self.declare_parameter('robot_frame', 'body')
+
+        self.declare_parameter('world_name', 'simple_world')  # name of the world in Gazebo, used to get the robot pose from Pose_V
 
         self.costmap_topic = self.get_parameter('costmap_topic').value
         self.goal_topic = self.get_parameter('goal_topic').value
@@ -62,9 +74,23 @@ class RRTPlannerNode(RclpyNode):
         self.max_iterations = self.get_parameter('max_iterations').value
         self.map_frame = self.get_parameter('map_frame').value
         self.robot_frame = self.get_parameter('robot_frame').value
+        self.world_name = self.get_parameter('world_name').value
+
+        # ---- robot pose variables (got from tf later) ----
+        self.robot_x = None
+        self.robot_y = None
+        self.robot_yaw = None
+        
+        self.pose_sub = self.create_subscription(
+            PoseStamped, '/robot_pose', self._pose_callback, 10)
+
 
         # ---- state ----
         self.latest_map = None  # most recent OccupancyGrid message
+        self.current_path = None  # most recent planned path (list of (x, y, heading, maneuver_angle) tuples)
+
+        self.replanning = False  # flag to indicate if replanning is in progress
+
 
         # ---- tf2, for "where am I and which way am I facing" ----
         self.tf_buffer = tf2_ros.Buffer()
@@ -77,6 +103,7 @@ class RRTPlannerNode(RclpyNode):
             PoseStamped, self.goal_topic, self._goal_callback, 10)
         self.path_pub = self.create_publisher(Path, self.path_topic, 10)
 
+
         self.get_logger().info(
             f'RRT planner ready. Listening for goals on "{self.goal_topic}", '
             f'map on "{self.costmap_topic}", publishing paths on "{self.path_topic}".'
@@ -87,21 +114,63 @@ class RRTPlannerNode(RclpyNode):
     def _map_callback(self, msg: OccupancyGrid):
         self.latest_map = msg
 
+        if self.current_path is not None:
+            self.check_current_path()
+
+    def _pose_callback(self, msg: PoseStamped):
+        # Find the pose of the robot in the PoseStamped message
+        self.robot_x = msg.pose.position.x
+        self.robot_y = msg.pose.position.y
+
+        self.robot_yaw = quaternion_to_yaw(
+            msg.pose.orientation.x,     # qx
+            msg.pose.orientation.y,     # qy
+            msg.pose.orientation.z,     # qz
+            msg.pose.orientation.w      # qw
+            )
+        
+
     def _goal_callback(self, goal_msg: PoseStamped):
+
+        start_time = time.perf_counter()    # start time needed to path plan 
+
+        self.last_goal = goal_msg
         if self.latest_map is None:
             self.get_logger().warn('No map received yet -- ignoring goal.')
             return
 
         pose = self._get_robot_pose()
         if pose is None:
-            self.get_logger().warn('Could not look up robot pose via tf -- ignoring goal.')
+            self.get_logger().warn('Robot pose not available.')
             return
+        
         start_x, start_y, start_yaw = pose
 
+        
+        """
+        # temporary start pose for testing
+        start_x = 0
+        start_y = 0
+        start_yaw = 0.0
+        """
+        
         goal_x = goal_msg.pose.position.x
         goal_y = goal_msg.pose.position.y
 
+        self.get_logger().info(
+            f'Planning from ({start_x:.2f}, {start_y:.2f}) '
+            f'to ({goal_msg.pose.position.x:.2f}, {goal_msg.pose.position.y:.2f})'
+        )
+
         occ_map = self._build_world_occupancy_grid(self.latest_map)
+
+        self.get_logger().info(
+            f"Start occupied: {occ_map.is_occupied(start_x, start_y)}"
+        )
+
+        self.get_logger().info(
+            f"Goal occupied: {occ_map.is_occupied(goal_x, goal_y)}"
+        )
 
         planner = RRTPlanner(
             occ_map=occ_map,
@@ -121,21 +190,41 @@ class RRTPlannerNode(RclpyNode):
 
         path_msg = self._build_path_msg(path)
         self.path_pub.publish(path_msg)
-        self.get_logger().info(f'Published path with {len(path)} waypoints.')
+
+        self.current_path = path_msg
+
+        end_time = time.perf_counter()      # end time needed to path plan
+
+        planning_time = end_time - start_time  # total time taken to path plan
+
+        # compute total path length (using Euclidean distance between waypoints)
+        path_length = 0.0
+        for i in range(1, len(path)):
+            x1, y1, _, _ = path[i - 1]
+            x2, y2, _, _ = path[i]
+            path_length += np.hypot(x2 - x1, y2 - y1)
+
+        # goal error (distance from the last waypoint to the goal)
+        goal_error_x = abs(path[-1][0] - goal_x)
+        goal_error_y = abs(path[-1][1] - goal_y)
+        goal_error = np.hypot(goal_error_x, goal_error_y)
+
+        self.get_logger().info(
+            f'Published path with {len(path)} waypoints. \n'
+            f'Path planning time: {planning_time:.3f} s\n'
+            f'Total path length: {path_length:.3f} m\n'
+            f'Goal error: {goal_error:.3f}'
+            )
+        
 
     # ---- helpers -----------------------------------------------------
 
     def _get_robot_pose(self):
-        try:
-            tf = self.tf_buffer.lookup_transform(
-                self.map_frame, self.robot_frame, Time())
-            x = tf.transform.translation.x
-            y = tf.transform.translation.y
-            yaw = self._quaternion_to_yaw(tf.transform.rotation)
-            return (x, y, yaw)
-        except TransformException as ex:
-            self.get_logger().warn(f'tf lookup failed: {ex}')
+        if self.robot_x is None:
+            self.get_logger().warn('Robot pose not available yet.')
             return None
+        return (self.robot_x, self.robot_y, self.robot_yaw)
+        
 
     def _build_world_occupancy_grid(self, msg: OccupancyGrid):
         """OccupancyGrid.data is 0-100 (occupancy probability) or -1 (unknown).
@@ -146,12 +235,15 @@ class RRTPlannerNode(RclpyNode):
             msg.info.height, msg.info.width)
         binary = np.where(
             (data >= self.occupancy_threshold) | (data == -1), 1, 0)
+        
+
         return WorldOccupancyGrid(
             binary_grid=binary,
             resolution=msg.info.resolution,
             origin_x=msg.info.origin.position.x,
             origin_y=msg.info.origin.position.y,
         )
+    
 
     def _build_path_msg(self, path):
         msg = Path()
@@ -178,6 +270,48 @@ class RRTPlannerNode(RclpyNode):
     def _quaternion_to_yaw(q):
         return math.atan2(2.0 * (q.w * q.z + q.x * q.y), 1.0 - 2.0 * (q.y * q.y + q.z * q.z))
 
+    # to verify the planner actually receives the map
+    def map_callback(self, msg):
+        self.get_logger().info(
+            f"Received map: {msg.info.width}x{msg.info.height}"
+        )
+
+        self.map = msg
+        if self.map is not None:
+            self.check_current_path()
+
+
+    def check_current_path(self):
+        """
+        Checks if the current path is still valid given the latest occupancy grid.
+        If the path is blocked, it triggers replanning.
+        """
+
+        if self.current_path is None:       # is there already a path?
+            return
+        if self.replanning:                 # is replanning already in progress?
+            return
+
+        occ_map = self._build_world_occupancy_grid(self.latest_map)
+
+        for pose_stamped in self.current_path.poses:
+            x = pose_stamped.pose.position.x
+            y = pose_stamped.pose.position.y
+
+            if occ_map.is_occupied(x, y):
+                self.get_logger().warn(
+                    f"Path blocked at ({x:.2f}, {y:.2f}). Replanning."
+                )
+
+                if self.last_goal is not None:
+                    self.replanning = True
+
+                    try:
+                        self._goal_callback(self.last_goal)
+                    finally:
+                        self.replanning = False
+                
+                return
 
 def main(args=None):
     rclpy.init(args=args)

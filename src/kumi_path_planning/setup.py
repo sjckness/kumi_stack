@@ -25,6 +25,10 @@ setup(
     entry_points={
         'console_scripts': [
             'rrt_planner_node = kumi_path_planning.rrt_planner_node:main',
+            'map_publisher = kumi_path_planning.map_publisher:main',
+            #'depth_to_occupancy_grid = kumi_path_planning.depth_to_occupancy_grid:main',
+            'yolo_to_occupancy_grid = kumi_path_planning.yolo_to_occupancy_grid:main',
+            'gz_pose_bridge = kumi_path_planning.gz_pose_bridge:main',
         ],
     },
 )

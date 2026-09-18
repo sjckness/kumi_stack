@@ -178,6 +178,28 @@ def generate_launch_description():
                     "camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
                 ]
             ),
+
+            PathJoinSubstitution(
+                [
+                    TextSubstitution(text="/"),
+                    namespace,
+                    "camera",
+                    "front_forward",
+                    "rgb",
+                    "image_raw@sensor_msgs/msg/Image[gz.msgs.Image",
+                ]
+            ),
+            PathJoinSubstitution(
+                [
+                    TextSubstitution(text="/"),
+                    namespace,
+                    "camera",
+                    "front_forward",
+                    "rgb",
+                    "camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+                ]
+            ),
+
             PathJoinSubstitution(
                 [
                     TextSubstitution(text="/"),
@@ -258,6 +280,28 @@ def generate_launch_description():
                     "camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
                 ]
             ),
+
+            PathJoinSubstitution(
+                [
+                    TextSubstitution(text="/"),
+                    namespace,
+                    "camera",
+                    "front_forward",
+                    "depth",
+                    "image_raw@sensor_msgs/msg/Image[gz.msgs.Image",
+                ]
+            ),
+            PathJoinSubstitution(
+                [
+                    TextSubstitution(text="/"),
+                    namespace,
+                    "camera",
+                    "front_forward",
+                    "depth",
+                    "camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+                ]
+            ),
+
             PathJoinSubstitution(
                 [
                     TextSubstitution(text="/"),
